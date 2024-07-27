@@ -1,0 +1,75 @@
+1. DNS: Translates the human friendly hostnames into ip addresses.
+
+2. www.google.com
+    TLD(top-level domain): .com
+    SLD(2nd-level domain): google
+    subdomain(3rd-level domain): www
+    Domain Name: google.com (Domain name only includes 1st and 2nd level domain, not 3rd or beyond)
+
+3. Domain records: A, AAAA, CName....
+
+4. Zone files contain domain records as well as additional administrative and operational information necessary for DNS functioning.
+
+5. Name Servers: 1. root name servers(deciding between .com, .net, .org....)
+              2. TLD Name Servers(deciding google.com or example.com or .....)
+              3. Authoritative Name Servers(the one contains the zone file, which contains DNS records that helps mapping your url into the corresponding ip, that result will go back to your local dns server, and cached there)
+              4. local DNS server(Caching DNS Resolvers): Local DNS servers cache the DNS query results for a period determined by the TTL (Time to Live) associated with each DNS record
+Flow after url entered: 4, or 4 -> 1 -> 2 -> 3
+
+6. Route 53: Authoritative Name Server(Authoritative DNS), these servers hold the zone files for their specific domains and answer queries based on the records in these files.
+
+Authoritative: as the customer, you get to update the DNS records.
+
+7. Route 53 is also a domain register, and can check the health of your resources.
+
+8. Route 53 is the ONLY AWS service that provides 100% availability SLA: when a service offers a 100% availability Service Level Agreement (SLA), it signifies a commitment from Amazon Web Services to ensure that the service is fully operational and accessible at all times, without any interruptions.
+
+9. DNS Records: How you want to route traffic for a domain. It contains:
+        a. Domain Name / Subdomain name
+        b. RecordType: A or AAAA or ....
+        c. Value: 12.34.56.78
+        d. Routing Policy: how Route 53 responds to queries
+        e. TTL: amount of time the record cached at DNS Resolvers(Local DNS)
+
+10. Route 53 supports the following DNS record types:
+    A / AAAA / CNAME / NS (must know)
+    CAA / DS / MX / NAPTR / SOA ....   (advanced)
+
+11. A: maps a hostname to IPv4
+
+12. AAAA: maps a hostname to IPv6
+
+13. CNAME: maps a hostname to another hostname. (The target is a domain name which must have an A or AAAA record) (not to another server, but in this same zone file)
+    
+    You can't create CNAME record for the top node of a DNS namespacve(Zone Apex): so no CNAME for like: example.com itself, but you can do it for www.example.com.
+    
+    Example Usage
+    For instance, if you have:
+
+    www.example.com mapped to an IP address via an A record,
+    You can then use a CNAME record to point blog.example.com to www.example.com.
+    When someone accesses blog.example.com, the DNS resolution process will follow these steps:
+
+    Look up the CNAME record for blog.example.com which points to www.example.com.
+    Resolve www.example.com to its corresponding A record to get the IP address.
+
+14. NS: Name Servers for the Hosted Zone: the address for DNS servers themselves, it controls how traffic is routed to a domain
+
+15. Hosted Zones is basically the Zone file on aws.
+    
+    a. Public hosted zones: contains records that specify how to route traffic on the internet(public domain names: app1.mypublicdomain.com)
+    b. Private hosted zones: contains records that specify how to route traffic within one or more VPCs(private domain names: app1.company.internal)
+    c. The DNS records in public hosted zones are served by Amazon's globally distributed DNS servers, making them accessible from anywhere on the internet.
+    d. The DNS records in private hosted zones are resolved by the DNS servers running within the VPC infrastructure, which are separate from the public DNS infrastructure. (there is caching for this as well, similiar but not identical to the ones for the public ones.)
+
+16. 0.5$ per month per hosted zone.
+
+
+
+
+
+
+
+
+
+
