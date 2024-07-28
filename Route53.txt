@@ -91,8 +91,47 @@ for root domain like example.com, only b is ok. for others like api.example.com,
     f. weight = 0 means no traffic will go to that specific resource.
 
 22. Latency-based Policy:
-    a. 
+    a. Latency is based on users and aws REGIONS.
+    b. can be associated with health check.
+    c. have to specify region on top of ip address when setting up in route 53.
 
+23. route53: multi region HA
+    ALB: multi AZs HA within one specific region
+
+24. route 53 health check, can be attached to each record, which allows automatic DNS failover. The types it can monitor:
+    a. endpoint(application, server, other aws resources)
+    b. other health check(Calculated health checks)
+    c. cloudwatch alarm (more control)
+
+
+25. monitor endpoint: send http request to /health for each record it attaches to, if:
+    a. it gets 2xx/3xx status code => healthy (can also set up to pass/fail based on the first 5120 bytes of the response)
+    b. else => unhealthy
+
+    About 15 global health checkers will check the endpoint.
+
+    default threshold: 3.  3 healthy => HEALTHY for THIS checker, 3 unhealthy => UNHEALTHY for THIS checker
+
+    Default Check Interval: 30 sec, (can set to 10 - higher cost)
+
+    Rule: if >18% of health checkers report the endpoint is HEALTHY, then ROUTE53 will consider it healthy. Otherwise, its unhealthy.
+
+    Supports: HTTPS / HTTP / TCP
+
+    Must configure your router / firewall to allow incoming traffic from route 53 health checkers.
+
+26. Calculated Health Checks:
+    a. Combine the result of multiple health checks(up to 256) into one.
+    b. You can use OR, AND, or NOT to combine them
+    c. Specify how health checks need to pass to make the parent to pass.
+    d. usage: maintanance.
+
+27. Health checks for private hosted zones:
+    facts:
+        a. all route53 health checkers are outside of VPC.
+        b. hence they can't access private endpoints. (private subnet or on-premises resource)
+    solution:
+        Create a cloudwatch metric and associate a cloudwatch alarm, then create a health check that checks the alarm itself.
 
 
 
