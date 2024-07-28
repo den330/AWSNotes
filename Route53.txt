@@ -39,7 +39,7 @@ Authoritative: as the customer, you get to update the DNS records.
 
 12. AAAA: maps a hostname to IPv6
 
-13. CNAME: maps a hostname to another hostname. (The target is a domain name which must have an A or AAAA record) (not to another server, but in this same zone file)
+13. CNAME: maps a hostname to another hostname. (The target is a domain name which must have an A or AAAA record) (does NOT have to reference the name on the same hosted zone.)
     
     You can't create CNAME record for the top node of a DNS namespacve(Zone Apex): so no CNAME for like: example.com itself, but you can do it for www.example.com.
     
@@ -63,6 +63,36 @@ Authoritative: as the customer, you get to update the DNS records.
     d. The DNS records in private hosted zones are resolved by the DNS servers running within the VPC infrastructure, which are separate from the public DNS infrastructure. (there is caching for this as well, similiar but not identical to the ones for the public ones.)
 
 16. 0.5$ per month per hosted zone.
+
+17. don't consider Route53 itself as a single server, but a set of config that will be deployed on many different (type of) servers.
+
+18. cloudshell cmd to test if a record does map your host name to the ip(even if there is no server behind it):
+-sudo yum install -y bind-utils
+-dig example.com
+(here, you can also do -nslookup example.com)
+
+19. if you want to route hostname to the dns name of a ALB or some other AWS services, two options:
+     a. CNAME + DNS Name
+     b. A + Alias
+for root domain like example.com, only b is ok. for others like api.example.com, either a or b is fine.
+
+20 Simple Policy:
+   a. Route traffic to a single resource.
+   b. If multiple values(IPs) are returned, random one is chosen by the CLIENT.
+   c. if using alias, then only ONE resource can be specified.
+   d. Can NOT be associated with health checks.
+
+21 Weighted Policy:
+    a.Control the percentage of requests that go into each specific resource. (example: 30% to instance A, 50% to B, 20% to C)
+    b. DNS records must have the same name and types, with the only differences being the value and weight.
+    c. weight for a specific record / sum of all weight of all records = traffic percentage.  (the sum of all weight does NOT have to be 100.)
+    d. can be associated with health checks.
+    e. used for: load balancing between regions. Testing a new version of application   by sending a small amount of traffic to it.
+    f. weight = 0 means no traffic will go to that specific resource.
+
+22. Latency-based Policy:
+    a. 
+
 
 
 
