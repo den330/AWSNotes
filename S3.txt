@@ -133,15 +133,82 @@ Each element in the Statement array represents an individual policy statement.
 
     In short, bucket 3 will only receive objects that are ORIGINALLY created in bucket 2, not the ones that already a replication themselves.
 
+31. Storage Classes:
+    a. Standard - General purpose
+    b. Standard - Infrenquent Access(IA)
+    c. One Zone-Infrequent Access
+    d. Glacier Instant Retrieval
+    e. Glacier Flexibal Retrieval
+    f. Glacier Deep Archive
+    g. Intelligent Tiering
 
+    Objects stored in the same bucket can have different storage classes.
 
+    Can move between classes manually(can edit after) or using S3 Lifecycle configurations
 
+32. Durability:
+    a. Durability: High Durability(99.99999999%, 11 9's) of objects across multiple AZ.
+    b. if you store 10,000,000 objects with s3, you can on average expect to incur a loss of a single object once every 10000 years.
+    c. same for all storage classes.
 
+33 Availability:
+    a. measures how readily available a service is
+    b. varies depending on storage class
+    c. Example: S3 standard has 99.99% availability = not available 53 minutes a year.
 
+33. Standard Class:
+    1.General purpose:
+        a. 99.99% availability
+        b. used for FREQUENT accessed data.
+        c. low latency and high throughput
+        d. can sustain 2 concurrent facility failures.
 
+        use cases: Big Data analytics, mobile/gaming applications, content distribution...
 
+    2.Infrequent Access(S3 Standard-IA):
+        a. for data that is less frequently accessed, but requires rapid access when needed.
+        b. lower cost than S3 standard.
+        c. but there is a cost for retrieval
+        d. 99.9% availability.
 
+        use cases: disaster recovery, backups
 
+    3.One Zone-Infrequent Access(S3 One Zone-IA):
+        a. High durability(99.999999999%) in a single AZ, and data is LOST when AZ is destroyed.
+        b. 99.5% availability.
+        use case: storing secondary backup copies of on premise data, or data you can recreate
+
+34. Glacier Class:
+    a. low-cost object storage meant for archiving / backup
+    b. Pricing: price for storage + object retrieval cost
+
+    1. Instant Retrieval:
+        a. millisecond retrieval, great for data accessed once a quarter.(It’s ideal for archive data that might need to be accessed more spontaneously, such as for quarterly financial reports or rare audits.)
+
+        b. min storage duration of 90 days. Data stored for less than this duration incurs charges as if it were stored for the full 90 days, making it less suitable for short-term storage.
+
+    2. Flexibal Retrieval(formerly S3 glacier):
+        a. retrieval speed:
+            Expedited(1 to 5 minutes)
+            Standard(3 to 5 hours)
+            Bulk(5 to 12 hours) - free
+        
+        b.min storage duration: 90 days
+
+    3. Deep Archive(for long term storage):
+        a. standard(12 hours), bulk(48hours)
+        b. min storage duration of 180 days.
+
+35. Intelligent-Tiering
+    a. Small monthly monitoring and auto-tiering fee.
+    b. Moves object automatically between access tiers based on usage.
+    c. no retrieval charges.
+
+    1. Frequent access tier(automatic): default tier
+    2. Infrequent access tier(automatic): objects not accessed for 30 days.
+    3. Archive Instant Access tier(automatic): objects not accessed for 90 days.
+    4. Archive Access tier(optional): configurable from 90 days to 700+ days.
+    5. Deep Archive Access Tier(optional): configurable from 180 days to 700+ days.
     
 
 
