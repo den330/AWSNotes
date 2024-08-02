@@ -74,15 +74,15 @@ Authoritative: as the customer, you get to update the DNS records.
 19. if you want to route hostname to the dns name of a ALB or some other AWS services, two options:
      a. CNAME + DNS Name
      b. A + Alias
-for root domain like example.com, only b is ok. for others like api.example.com, either a or b is fine.
+for root domain like example.com, only b is ok. for others like api.example.com, either a or b is fine. (CNAME can only be used for subdomain, so if you want to route to an ALB for the root domain, only b can be selected!)
 
-20 Simple Policy:
+20 Routing Policy: Simple Policy:
    a. Route traffic to a single resource.
    b. If multiple values(IPs) are returned, random one is chosen by the CLIENT.
    c. if using alias, then only ONE resource can be specified.
    d. Can NOT be associated with health checks.
 
-21 Weighted Policy:
+21 Routing Policy: Weighted Policy:
     a.Control the percentage of requests that go into each specific resource. (example: 30% to instance A, 50% to B, 20% to C)
     b. DNS records must have the same name and types, with the only differences being the value and weight.
     c. weight for a specific record / sum of all weight of all records = traffic percentage.  (the sum of all weight does NOT have to be 100.)
@@ -90,7 +90,7 @@ for root domain like example.com, only b is ok. for others like api.example.com,
     e. used for: load balancing between regions. Testing a new version of application   by sending a small amount of traffic to it.
     f. weight = 0 means no traffic will go to that specific resource.
 
-22. Latency-based Policy:
+22. Routing Policy: Latency-based Policy:
     a. Latency is based on users and aws REGIONS.
     b. can be associated with health check.
     c. have to specify region on top of ip address when setting up in route 53.
@@ -133,7 +133,39 @@ for root domain like example.com, only b is ok. for others like api.example.com,
     solution:
         Create a cloudwatch metric and associate a cloudwatch alarm, then create a health check that checks the alarm itself.
 
+28. Routing Policy: Failover(Active-Passive):
+    a. Route 53 at front, one primary ec2 instance, and one secondary instance(disaster recovery)
+    b. Associate the primary one with health check(mandatory)
+    c. if primary is unhealthy, it will then route to secondary.
 
+29. Routing Policy: Geolocation
+    1. not the same as Latency-based.
+    2. based on physical location of the user
+    3. specify location by continent, country, or by US state, if there is overlapping, the most precise one is selected.
+    4. there should always be a default record in case there is no match on location.
+    5. use case: website localization, restrict content distribution, load balancing..
+    6. can be associated with health checks, if a server in a specific region becomes unhealthy and there is no other healthy server in a region that matches the geographic targeting criteria, the traffic will indeed be redirected to the default record.
+
+30. Routing Policy: Geoproximity
+    a. one instance in us-west-1, the other in us-east-1, if both bias are 0, then all users from center to the east go to us-east-1, all from center to the west, go to us-west-1.
+    b. if, say us-east-1 got a bias of 50(positive), that "center line" will now shift to the west by some distance, some of the users that initially reach west, will now reach east server.
+    c. adjust bias dynamically based on your changing need.
+
+31. Routing Policy: IP-based
+    a. routing based on USER's ip address.
+    b. you provide a mapping between a CIDR and the endpoint. (users within this CIDR range go to endpoint A, the ones from that range go to endpoint B)
+    c. use case: optimize performance, reduce network cost.
+    d. example: route end users from a particular ISP to a specific endpoint.
+
+32. Routing Policy: Multi-value answer
+    a. used when routing traffic to MULTIPLE resources.
+    b. route 53 return multiple values(ip addresses) / resources.
+    c. can be associated with health checkes(return only values for healthy resources)
+    d. up to 8 healthy records are returned for each multi-value query
+    e. it is NOT a substitute for having an ELB
+    f. once the list of ip addresses is received, the client-side can pick which one to go for.
+    g. different from simple policy with multiple values as simple policy DOES not allow health checks, hence unhealthy ip might be returned.
+    
 
 
 

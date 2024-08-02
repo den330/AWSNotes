@@ -1,0 +1,150 @@
+1. use case:
+    a. backup and storage
+    b. disaster recovery
+    c. archive
+    d. hybrid cloud storage(with on-premise storage)
+    e. application hosting
+    f. media hosting
+    g. static website
+    h. data lake / big data analytics
+    ...
+
+2. stores objects(files) in buckets(directory)
+
+3. Bucket must have GLOBALLY UNIQUE name
+
+4. Buckets are defined at region level (specify a region before creating one.)
+
+5. S3 is a global service, but buckets are defined at region level.
+
+6. bucket name: can consist only of lowercase letters, numbers, dots (.), and hyphens (-).
+    a. no uppercase, 
+    b. no underscore
+    c. 3-63 char long.
+    d. not an ip
+    e. must start with lowercase letter or number
+    f. must NOT start with prefix xn--
+    g. must NOT end with suffix -3alias
+
+7.Objects(files) have a key. The key is full path of the corresponding object(file).
+    example: my_folder/my_file.txt, my_folder/my_other_folder/my_file.txt...
+    Key = prefix + object name
+
+8.no actual folders in a bucket, but long object keys with slashes: my_folder/my_other_folder/my_file.txt
+
+9. Object values are content of the body. Max object is 5TB.
+
+10. if uploading size > 5GB, "multi-part" upload is a must.
+
+11. object metadata: Each object in an S3 bucket can have associated metadata, which are key-value pairs that provide additional information about the object. (example: Content-Type, Last-Modified)
+
+12. object tags: 
+    a. Tags are simple key-value pairs that help manage and control access to S3 objects. 
+    b. Each tag consists of a key and a value, both of which are defined by you. For example, a tag could be {"Key": "Environment", "Value": "Production"}. You can assign up to 50 tags per S3 object.
+
+13. version id: Each version of an object is given a unique version ID. When you enable versioning on a bucket, S3 generates a version ID for each object uploaded.
+
+14. Resource-based policy:
+    a. Bucket policies: bucket wide rules you can assign from the S3 console - allow user from another account to access(cross account)  (most common)
+    b. Object Access Control List(ACL) - finer grain(on object level) (can be disabled)
+    c. Bucket Access Control List(ACL) - less common(can be disabled)
+
+15. an IAM principal can access an S3 object if:
+    The user IAM permissions explicitly ALLOW it OR the resource policy explicitly ALLOWS it, AND there is no explicit DENY.
+
+16. Encryption: encrypt objects in S3 using encryption keys.
+
+17. Bucket Policies(JSON based policies):
+    a. Resouces: what buckets and objects this policy applies on. (example: "arn:aws:s3:::examplebucket/*")
+    b. Effect: Allow / Deny
+    c. Actions: Set of API to Allow or Deny. (example: "s3: GetObject")
+    d. Principal: The account or user to apply the policy to (example(allow anyone): "*")
+
+18. Use S3 bucket for policy to: 
+    a. Grant public access to the bucket
+    b. force objects to be encrypted at upload
+    c. Grant access to another account(cross account)
+
+19. example policies in JSON format:
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::examplebucket/*"
+        }
+    ]
+}
+
+Each element in the Statement array represents an individual policy statement.
+
+20. To access a S3 bucket:
+     For user: you need at least one explicit Allow from either IAM USER policy or Bucket policies, without explicit Deny anythere.
+     For services: you need at least one explicit Allow from either IAM ROLE or Bucket policies, without explicit Deny anythere.
+     For cross-account access: you must use bucket policy to explictly allow it.
+
+21. Bucket settings for block public access. (Set when we create a bucket).
+    a. These settings were created to prevent data leaks.
+    b. EXTRA layer of security. (hence you need the Allow here AND in the relevant policy to ACTUALLY allow access)
+    c. if you know your bucket should never be public, leave these on.
+    d. if you know NONE of your buckets should ever be public, you can set it at the account level. (once its set, you cannot make any exception to any particular buckets, as this overrides all)
+
+22. S3 can host static website. (typical url looks like this: http://demo-bucket.s3-website-us-west2.amazonaws.com). Users will access our S3 bucket. 403 forbidden => bucket policy does not allow public read, change it!
+
+23. Versioning. Enabled at bucket level. once enabled, we can upload different files to the same key, version 1, version 2....
+    a. protect against unintended deletes(ability to restore)
+    b.easy to roll back to previous version.
+    Note: any file that is not versioned prior to enabling versioning will have version "null" and suspending versioning does NOT delete prev versions.
+
+24. with versioning enabled:
+
+    a.delete with show version toggled on, it actually delete the file(destructive), so deleting version 4 will bring you to version 3 of the file in the end.
+
+    b.delete with show version toggled off, it actually add a new version on top of the current one(like revert in git), with the type being "Delete marker". The current file(version), can be restored.(by deleting the delete marker with show version toggle on)
+
+25. Replication(CRR & SRR)
+    a. CRR: Cross Region Replication (compliance, lower latency access, replication across accounts)
+    b. SRR: Same Region Replication (log aggregation, live replication between production and test accounts, so we can have data to test on.)
+
+26. For example: setting up async replication between these bucket: bucket1(eu-west-1) and bucket2(us-east-2):
+    a. must enable Versioning in source and destination buckets.
+    b. bucket can be in different AWS account.
+    c. copying is async
+    d. must give proper IAM permissions to S3. (IAM role for source so it can replicate in destination)
+
+27.After you enable replication, ONLY new objects are replicated.
+
+28. Optionally, you can replicate existing objects using S3 Batch Replication.
+    a. replicate existing objects and objects that failed replication.
+
+29. Delete:
+    a. can replicate delete markers from source to target(optional setting)
+    b. delete with version id(destructive) are NOT replicated(to avoid malicious delete)
+    c. by default, delete markers are not replicated, but you can update the setting in "management" => "replication rules"
+
+30. No chain:
+    if bucket 1 has replication into bucket 2, which has replication into bucket 3, then objects created in bucket 1 are NOT replicated to bucket 3.
+    
+    (When bucket 2 receives this object, it does not automatically replicate it to bucket 3, even if there's a replication configuration between bucket 2 and bucket 3. This is because the replication process does not pass the "new object" event from bucket 1 through to bucket 3.)
+
+    In short, bucket 3 will only receive objects that are ORIGINALLY created in bucket 2, not the ones that already a replication themselves.
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+ 
