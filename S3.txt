@@ -211,7 +211,142 @@ Each element in the Statement array represents an individual policy statement.
     5. Deep Archive Access Tier(optional): configurable from 180 days to 700+ days.
     
 
+36. Lifecycle Rules: You can transition objects between storage classes, which can be automated with Lifecycle rules.
+    1. Transition Actions: configure objects to transition to another storage class.
+        example: move objects to standard IA class 60 days after creation
+    
+    2. Expiration Actions: configure objects to expire(delete) after some time. (perm delete, not marker!)
+        example: access log files can be set to delete after a 365 days.
+        can be used to delete old versions(noncurrent versions) of files(if versioning is enabled)
+        can be used to delete incomplete multi-part uploads(like if it not done within a week, delete the finished part)
+    3. Rules can be created for:
+        1. a certain prefix(example: s3://mybucket/mp3/*)
+        2. certain objects Tags(example: Department: Finance)
 
+    4. Scenarios: check course 140, starting at 1:50.
 
+37. S3 Analytics: Storage class analysis.
+    1. help you decide when to transition objects to the right storage class
+    2. Recommendations for Standard and Standard IA:
+        a. does NOT work for ONE-ZONE IA or Glacier
+    3. S3 analytics will run on top of a S3 bucket and create a .csv report with the recommendations.
+    4. the .csv report is updated daily.
+    5. takes 24 to 48 hours to start seeing data analysis from it.
+    6. it is a good first step to put together a lifecyle rules.(or improve it)
 
+38. S3 Requester Pays.
+    1. In general, bucket owners pay for all S3 related costs associated with their bucket. (storage + data transfer).
+    2. With Requester Pays buckets, the request instead of the owner pays the cost of the request and the data download from the bucket. The owner still pays for the storage cost.
+    3. The requester MUST be authenticated in AWS(cannot be anonymous), so AWS knows (how to) bill that requester. (In the "Requester Pays" model, the requester must have an active AWS account with valid billing information. This is because AWS charges the requester's account for the data transfer and request costs associated with accessing the S3 bucket. Since anonymous access is not allowed, each request must be authenticated using AWS credentials, ensuring that AWS can track and bill the correct account for the usage.)
+
+39. S3 Event Notifications
+    1. Event: S3:ObjectCreated, S3:ObjectRemoved...
+    2. Object name filtering possible (*.jpg)
+       use case: automatically generate thumbnails of images uploaded to s3.
+    3. Can create as many S3 events as desired.
+    4. Destinations: SNS, SQS, Lamdda Function.
+    5. typically delivers in seconds but CAN take a minute or longer
+    6. we use resource policies INSTEAD OF IAM Roles: SNS Resource(Access) Policy, SQS Resource(Access) Policy, Lambda Resource Policy.  (course 143, at 1:47)
+
+40. Amazon EventBridge
+    1. instead of sending events directly to destinations above, you can first send them all to Amazon EventBridge.
+    2. you can set rules and send these events to over 18 aws services from eventbridge.
+    3. you get Advanced filtering options with JSON rules(metadata, object size, name...)
+    4. you can send events to Multiple Destinations at a time. (ex: Step Functions, Kinesis Streams/Firehose)
+    5. EventBridge Capabilities: Archive, Replay Events, Reliable delivery.
+
+41. S3 Baseline Performance
+    1. automatically scales to high request rates, latency 100-200ms.
+    2. can achieve at least 3500 PUT/COPY/POST/DELETE or 5500 GET/HEAD requests per second per PREFIX in a bucket.
+    3. no limits to the number of prefixes in a bucket.
+    4. example(object path => prefix):
+        bucket/folder1/sub1/file => /folder1/sub1/
+        bucket/folder1/sub2/file => /folder1/sub2/
+        bucket/1/file => /1/
+        bucket/2/file => /2/
+    If you spread reads across all four prefixes evenly, you can achieve 22000 requests per second for GET and HEAD.
+
+42. Optimization:
+    1. Multi-part upload:
+        a. recommended for files > 100 MB, must use for files > 5GB
+        b. can help parallelize uploads(speed up transfers): divide in parts, upload each at the same time(parallel uploads), then assemble into one at destination.
+    2. S3 Transfer Acceleration:
+        a. increase transfer speed by transferring file to an nearing AWS edge location which will then forward the data to the S3 bucket in the target region, using AWS private network(much faster than internet)
+        b. compatiable with multi-part upload.
+    3. S3 Byte-Range Fetches:
+        a. Parallelieze GETs by requesting specific byte ranges.
+        b. Better resilience in case of failures. (you can retry a small part if it fails, instead of retrying the whole thing)
+        c. use case: 
+            1. can be used to speed up downloads.
+            2. can be used to retrieve only partial data(for example the head of a file, first XX bytes)
  
+ 43. S3 Select & Glacier Select
+    1. Retrieve less data using SQL by performing server-side filtering.
+        a.Can filter by rows & columns(simple SQL statement)
+        b.Less network transfer, less CPU cost on client-side.
+    
+ 44. S3 Batch Operations
+    1. Perform bulk operations on existing S3 objects with a single request, example:
+        a. Modify object metadata and properties.
+        b. Copy objects between S3 buckets.
+        c. Encrypt un-encrypted objects.
+        d. Modify ACLs, tags.
+        e. Restore objects from S3 Glacier.
+        f. Invoke Lambda function to perform custom action on each object.
+    2. A JOB consists of a list of objects, the action to perform, and optional parameters.
+    3. Batch Operations manages retries, tracks progress, send completion notifications, generate reports...
+    4. To generate a list of objects to be passed to Batch Operations, we can use S3 Inventory to get object list and use S3 Select to filter our objects, then pass them to Batch Operations, then Batch Operation will return a list of Processed Objects once its done.
+
+45. S3 Storage Lens
+    1. Understand, analyze and optimize storage across entire AWS Organization.
+    2. Discover anomalies, identify cost efficiencis and apply data protection best practice across entire AWS organization(30 day usage and activity metrics)
+    3. Aggregate data for Organization, specific accounts, regions, buckets, or prefixes.
+    4. Default dashboard or create your own dashboard.
+    5. can be configure to export metrics daily to a S3 bucket(CSV, Parquet)
+    6. Default Dashboard:
+        a. Visualize summarized insights and trends for both free and advanced metrics.
+        b. It shows Multi-Region and Multi-Account Data.
+        c. Preconfigured by S3.
+        d. can't be deleted.
+    7. Metrics:
+        a. Summary Metrics:
+            1. General insights about your S3 storage.
+            2. StorageBytes, ObjectCount..
+            3. Use cases: identify the fastest-growing(or not used) buckets and prefixes.
+        b. Cost-Optimization Metrics:
+            1. Provide insights to manage and optimize your storage costs.
+            2. NonCurrentVersionStorageBytes, IncompleteMutipartUploadStorageBytes...
+            3. Use cases: identify buckets with incomplete multipart uploaded older than 7 days, identify which objects could be transitioned to lower-cost storage class.
+        c. Data-Protection Metrics:
+            1. Provide insights for data protection features.
+            2. VersioningEnabledBucketCount, MFADeleteEnabledBucketCount, SSEKMSEnabledBucketCount, CrossRegionReplicationRuleCount...
+            3. Use cases: identify buckets that aren't following data-protection best practices.
+        d. Access-management Metris:
+            1. Provide insights for S3 Object Ownership.
+            2. ObjectOwnershipBucketOwnerEnforcedBucketCount...
+            3. Use cases: identify which object ownership settings your buckets use
+        e. Event Metrics:
+            1. Provide insights for S3 Event Notifications
+            2. EventNotificationEnabledBucketCount
+            3. Use cases: Identify which buckets have S3 event notifications configured.
+        f. Performance Metrics:
+            1. Provide insights for S3 transfer accelaration.
+            2. TransferAccelerationEnabledBucketCount.
+            3. Use cases: identify which buckets have S3 transfer accelaration enabled.
+        g. Activity Metrics:
+            1. Provide insights about how your storage is requested. 
+            2. AllRequests, GetRequests, PutRequests, ListRequests...
+        h. Detailed Status Code Metris:
+            1. Provides insights for HTTP status code.
+            2. 200OKStatusCount, 403ForbiddenErrorCount, 404NotFoundErrorCount...
+    8. Free vs Paid
+        1. Free Metrics:
+            a. Automatically available for all customers.
+            b. Contains around 28 usage metrics.
+            c. data available for queries for 14 days.
+        2. Advanced Metrics and Recommendations:
+            a. additional paid metrics and features.
+            b. Advanced Metrics: Activity, Advanced Cost Optimization, Advanced Data Protection, Status Code...
+            c. CloudWatch Publishing: Access metrics in CloudWatch without additional cost.
+            d. Prefix Aggregation: Collect metrics at the prefix level.
+            e. data available for queries for 15 months.
