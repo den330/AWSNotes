@@ -35,3 +35,35 @@
             b. Machine Learning: Deploy machine learning models directly on these devices to perform real-time analysis at the edge. For instance, a Snowball Edge with a GPU can run models that predict equipment failure on a ship or optimize routes for trucks based on immediate data inputs.
             
             c. Transcoding Media: For media applications, these devices can perform onsite media transcoding to adjust the format or quality of video data before it is sent to central servers or delivered to end users.
+
+3. FSx: Launch 3rd party high-performance file system on AWS. 
+    a.Its a fully managed service (like what RDS is to DBs)
+    b. FSx for:
+        1. Lustre
+        2. windows file server(for project requring windows fs)
+        3. NetApp ONTAP
+        4. OpenZFS
+
+        FSx for Lustre and FSx for Windows File Server are highly integrated with AWS services, making them ideal for AWS-based applications needing specialized file system capabilities.
+        NetApp ONTAP offers a broad feature set tailored for enterprise-level and hybrid cloud deployments, providing a good balance between performance and data management features.
+        OpenZFS is renowned for its robust data protection and integrity features, suited for environments where data corruption prevention is a priority.
+    
+    c. Region-bound. And just like EFS, multiple instances across different AZs in the same region can access FSx at the same time.
+
+4. FSx for windows: Can be mounted on Linux EC2 instances.  When we say that FSx can be "mounted" on a Linux EC2 instance, we're referring to the process of connecting the EC2 instance to the FSx file system over the network, allowing the instance to access the file system as if it were a local drive.
+5. FSx for Lustre: For Machine Learning, and High Performance Computing(HPC)  (Video Processing, Financial Modeling...)
+    Deployment Options:
+        a. Scratch File System (FSx for Lustre)
+            Purpose: Designed for temporary storage and shorter-term, high-speed data processing tasks.
+            Data Replication: Typically, data is not replicated across multiple locations within AWS, which can lead to higher risk of data loss if the underlying hardware fails.
+            Performance: Offers very high burst throughput, up to six times the baseline rate, which is ideal for workloads that need to process data quickly but do not require long-term persistence.
+            Use Cases: Suitable for applications such as stateless computations where data persistency is not critical, or for processing datasets that are replicated elsewhere or can be reconstructed.
+        b. Persistent File System (FSx for Lustre)
+            Purpose: Provides durable file storage that's suitable for longer-term and critical data storage needs.
+            Data Replication: Data is typically replicated within the file system to protect against the loss of an individual disk or server.
+            Performance: Offers lower burst throughput compared to scratch configurations but provides a higher baseline performance and greater data durability.
+            Use Cases: Ideal for use cases that require a combination of high performance and data durability, such as ML model training where data needs to be readily available over a longer period, or complex scientific computations involving large, persistent datasets.
+
+        
+6. Storage Geteway: AWS Storage Gateway is a hybrid cloud storage service that allows you to seamlessly connect and extend your on-premises environments to AWS cloud storage.
+    
