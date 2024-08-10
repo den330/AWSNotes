@@ -1,0 +1,37 @@
+1. Snow Family: Portable offline devices to collect and process data at edge, and migrate data into / out of AWS.
+    a. Snowcone(up to Terabytes): 8TB HDD TO 14TD SSD.
+    b. Snowball Edge(up to Petabytes): 80TB - 210TB.
+    c. why:
+        1. Limited Conectivity.
+        2. Limited Bandwidth.
+        3. High network costs.
+        4. Unstable connection.
+    d. when:
+        If it takes more than a week to transfer data over network, go with snowball devices.
+    e. typical steps:
+        1. Order the Device: Request a Snowball device through the AWS Management Console.
+        
+        2. Load Data: Once the device arrives, connect it to your local network and use the AWS OpsHub or the Snowball client to transfer files to the device.
+        
+        3. Ship the Device Back: After loading your data, ship the device back to AWS using the pre-paid shipping label.
+        
+        4. Data Transfer to S3: AWS personnel will transfer your data from the Snowball device to your specified Amazon S3 bucket.
+        
+        5. Device Wiping: After the data transfer, the device is securely erased according to NIST standards, making it ready for the next use.
+    
+    f. Snowball devices CANNOT directly import data into Amazon Glacier.
+        solution: use s3 first, in combination with life cycle policy to transition these objects into glacier.
+    
+2. Edge Computing: Process data while it's being created on an edge location.(a truck on the road, a ship on the sea, a mining station underground... places that have limited or no access to computing power.)
+    a. we can setup a snowball edge /snowcone device to do edge computing.
+        1. snowcone: 2 cpus, 4gb memory, wired or wireless access.
+        2. snowball edge: 
+            a. compute optimized
+            b. storage optimized.
+        3. can run ec2 instances or lambda functions directly at the edge.
+        4. use case:
+            a. Preprocessing Data: You can configure these devices to collect and preprocess data before it is sent to the cloud for further analysis. For example, data from sensors on a mining station can be aggregated and filtered to remove noise and reduce volume before transmission.
+            
+            b. Machine Learning: Deploy machine learning models directly on these devices to perform real-time analysis at the edge. For instance, a Snowball Edge with a GPU can run models that predict equipment failure on a ship or optimize routes for trucks based on immediate data inputs.
+            
+            c. Transcoding Media: For media applications, these devices can perform onsite media transcoding to adjust the format or quality of video data before it is sent to central servers or delivered to end users.
