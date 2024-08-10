@@ -1,0 +1,83 @@
+1. if you want to cloudfront/edge locations to DIRECTLY cache content for a EC2, then that EC2 must be public. (must also have a sec group that allows the list of all the public ip from edge locations)
+
+2. Or, we can use ALB as middleman, in that case, that ALB must be public, but EC2 instances can now be private. (allow security group of ALB)
+
+3. Geo Restriction
+   a. Allowlist: Allow users to access your content ONLY if they are in one of the countries on the list of approved countries.
+   b. Blocklist: Blocl users to access your content if they are in one of the countries on the list of banned countries.
+   c. You can choose either an allowlist or a blocklist for your geo-restriction strategy, but NOT BOTH simultaneously for a single distribution.
+   d. use case: copyright laws
+
+4. Pricing
+   a. the cost of data per edge location varies
+   b. you can reduce the number of edge locations to reduce cost.
+   c. price class:
+      1. Price Class All: all regions - best performance
+      2. Price Class 200: most regions, but excludes the most expensive regions.
+      3. Price Class 100: only the least expensive regions.
+
+5. Cache Invalidation
+   Problem: 
+      when you update the content on the server, Cloudfront won't know it and will only get the refreshed content after the TTL has expired. But sometimes, you want the new content to be served right away.
+
+   Solution:
+      You can force an entire or partial cache refresh(bypassing TTL) by performing a Cloudfront Invalidation.
+
+   a. When you perform a cache invalidation in Amazon CloudFront, it effectively removes the specified files from CloudFront's cache. This means that the next request for these files will be treated as if they are not in the cache at all. CloudFront will fetch the latest version of the files from the origin server. Therefore, TTL will be reset.
+
+   b. You can invalidate all files(*) or a special path(/images/*) and/or a specific file(index.html). 
+
+6. Global Accelerator
+   Problem: 
+      You have deployed an application and have GLOBAL users who want to access it directly. But the application is only deployed in one region. As a result, most of the users will have to go over the public internet,which can add a lot of latency due to many hops.
+
+   Concept:
+      a. Unicast IP: one server holds one ip address(the one we are familiar with)
+      b. Anycast IP: all server hold the ip and users are routed to the nearest one.
+
+   Solution: Leverage AWS internal network to route to our application.
+      1. user -> edge location(internet)
+      2. edge location -> server that holds our application(private AWS network)
+      
+      a. 2 Anycast IP are created for your application.
+      b. The Anycast IP send traffic directly to the nearest Edge locations.
+
+   Works with:
+      a. Elastic IP
+      b. EC2 instances.
+      c. ALB and NLB
+
+   Consistent Performance:
+      a. intelligent routing to the lowest latency and fast regional failover
+      b. No issue with client cache(because the Anycast IP does not change)
+      c. internal aws network.
+   
+   Health Checks:
+      a. it performs health check on your application.
+      b. Helps your application global(failover less than 1 minute if unhealthy)
+      c. Great for disaster recovery
+
+   Security:
+      a. only TWO external IP to be whitelisted.
+      b. DDoS protection thanks to AWS shield
+
+   Traffic dials are used to control the percentage of traffic that is routed to specific endpoint groups after it reaches the AWS network via the nearest edge location. These endpoint groups could be in different AWS Regions or different data centers within the same region.
+
+
+7. Cloudfront vs Global Accelerator:
+   a. Same:
+      1. Both use AWS global network and its edge locations around the world.
+      2. Both integrate AWS shield for DDoS protection.
+
+   b. difference:
+      Cloudfront:
+         1. improves performance for both cachable content(such as images and videos) and Dynamic content(such as API accelaration and dynamic site delivery)
+         2. content is served at edge.
+
+      Global Accelerator:
+         1. improves performance for a wide range of applications over TCP or UDP
+         2. proxy packets at the edge to applications running in one or more AWS regions. So content is still served at original severs, not at edge.
+         3. Good fit for non-http use cases, such as gaming(UDP),IoT(MQTT) or voice over IP.
+         4. Good fit for http use cases that require static ip addresses.
+         5. Good fit for http use cases that requires deterministic, fast region failover.
+

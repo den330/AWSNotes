@@ -350,3 +350,209 @@ Each element in the Statement array represents an individual policy statement.
             c. CloudWatch Publishing: Access metrics in CloudWatch without additional cost.
             d. Prefix Aggregation: Collect metrics at the prefix level.
             e. data available for queries for 15 months.
+
+46. Object Encryption:
+    a. Server-Side Encryption(SSE)
+        1. SSE with S3-Managed Keys(SSE-S3) - Enabled by Default
+        2. SSE with KMS-Managed Keys(SSE-KMS) 
+        3. SSE with Customer-Provided Keys(SSE-C)
+    b. Client-Side Encryption
+
+47. SSE-S3
+    a. Encryption using keys handled, managed and owned by AWS
+    b. Object is encrypted server-side.
+    c. Encryption type is AES-256(NOT AES-128!)
+    d. Must set header "x-amz-server-side-encryption": "AES256"
+    e. Enabled by default for new buckets and new objects.
+
+48. SSE-KMS
+    a. Encryption using keys handled and managed by AWS KMS(Key Management Service)
+    b. Advantages: user control(thru the selection and management of CMK, Customer Master Keys) + audit key usage using CloudTrail
+    c. Object is encrypted server side.
+    d. Must set header "x-amz-serveer-side-encryption": "aws:kms"
+    e. limitations: 
+        1. might be impacted by KMS limits.
+        2. When uploading, it calls the GenerateDataKey KMS API
+        3. When downloading, it calls the Decrypt KMS API
+        4. Each of these API calls counts towards the KMS quota per second(5500, 10000,30000 req/s based on region)
+        5. You can, however, request a quota increase using the Service Quotas Console.
+
+49. SSE-C
+    a. Service-Side Encryption using keys fully managed by the customer outside of AWS
+    b. S3 does NOT store the encryption key you provide
+    c. HTTPS must be used
+    d. Encryption key must provided in HTTP headers, for every HTTP request made.
+
+50. Client-Side Encryption
+    a. Use client libraries such as Amazon S3 Client-Side Encryption Library
+    b. Clients must encrypt data themselves BEFORE sending to S3.
+    c. Clients must decrypt data themselves AFTER retrieving from S3.
+    d. Costomer fully manages the keys and encryption cycle.
+
+51. Encryption in transit/flight (SSL/TLS)
+    a. Encryption in flight is also called SSL/TLS
+    b. S3 exposes two endpoints:
+        1. HTTP
+        2. HTTPS (encryption in flight)
+    c. HTTPS is MANDATORY for SSE-C, and recommended for the rest.
+
+52. To force Encryption in transit:
+    a. use a bucket policy:
+        Effect: "Deny", Condition: aws: SecureTransport: "false", Action: ..., Resource: ...
+
+53. SSE-KMS Without bucket key: (standard process):
+    a. when uploading the object:
+        1. call the kms api to generate a data encryption key, and the same key encrypted by  CMK.
+        2. kms returns both the raw encryption key and the encrypted one.
+        3. s3 use the raw one to encrypte the object, and the stores it along side the encrypted one.
+
+    b. when downloading the object:
+       1. call the kms api with the encrypted encryption key, to obtain the raw encryption key.
+       2. use the raw encryption key to decrypt the encrypted object stored in S3.
+      3. returns the decrypted object.
+
+54. SSE-KME with bucket key:
+    A. Uploading an Object with S3 Bucket Key
+        1. Initial Bucket Key Setup:
+
+        When the first object is uploaded after enabling the S3 Bucket Key, S3 makes a single API call to KMS to generate the S3 Bucket Key, which is a DEK encrypted under the customer master key (CMK).
+        
+        This bucket key is then securely stored in S3 and is used for subsequent operations.
+        
+        2. Encrypting Objects:
+
+        For each object uploaded, instead of calling KMS to generate a new DEK, S3 locally generates a unique DEK for each object using the S3 Bucket Key.
+        
+        The object is encrypted with this locally generated DEK.
+        
+        The DEK is then encrypted using the S3 Bucket Key (not the CMK directly) and stored alongside the encrypted object, reducing the need to interact with KMS again.
+    
+    B. Downloading an Object with S3 Bucket Key
+        1. Retrieve the Encrypted DEK:
+            The encrypted DEK stored with the object is retrieved.
+        2. Decrypt the DEK:
+            Instead of making an API call to KMS to decrypt the DEK, S3 uses the cached S3 Bucket Key to decrypt the DEK locally, avoiding the need to contact KMS for each object decryption.
+        3. Decrypt the Object:
+            The raw DEK is used to decrypt the encrypted object stored in S3.
+        4. The decrypted object is then returned to the requester.
+
+55. 
+    If you have set SSE-S3 as the default encryption method for your Amazon S3 bucket, you do not need to include any specific headers related to encryption when uploading objects. The server-side encryption with Amazon S3-managed keys (SSE-S3) will be automatically applied to all objects stored in the bucket.
+
+    However, if you wish to specify encryption explicitly for each upload (perhaps to use a different encryption method for certain files), you can do so by including the x-amz-server-side-encryption header with the value AES256 in your upload request. This tells S3 to use SSE-S3 for that particular object, even if the bucket's default encryption setting is different.
+
+    You can override the default bucket encryption settings on a per-object basis by specifying a different encryption method in the header when uploading the object.
+
+    To prevent override, you can specify the encryption in bucket policy, like: 
+    "StringNotEquals": {"s3:x-amz-server-side-encryption": "aws:s3"}
+
+56. CORS: Cross-Origin Resource Sharing(CORS)
+    a.Origin = Scheme(protocol) + host(domain) + port
+        example: https://www.example.com (implied port is 443 for HTTPS, 80 for HTTP)
+        Scheme: https
+        Host: www.example.com
+        Port: Implied to be 443 because the scheme is HTTPS.    
+    b. It is a Web Browser based mechanism to allow requests to other origins while visiting the main origin.
+    c. Same origin: 
+        http://example.com/app1 & http://example.com/app2
+    d. Different origin:
+        http://www.example.com & http://other.example.com
+    e. The requests won't be fulfilled unless the other origin allows for the requests, using CORS Headers(Access-Control-Allow-Origin)
+
+57. CORS and S3
+    a. if a client makes a cross-origin request on our S3 bucket, we need to enable the correct CORS headers.
+    b. You can allow for a specific origin or for * (all origins)
+    c. example:
+        when visiting a index.html file on S3 (with static website enabled), it contains javascript code requesting resource from another bucket, the bucket being requested need to set the Access-Control-Allow-Origin, like "http://my-bucket-html.s3-website.us-west-2.amazonaws.com", so resource from this bucket can be requested by the bucket where the html is located.
+    d. you don't need to do that when both files are in the same bucket, as they share the same origin.
+    e. cors config in json format example:
+        [
+            {
+                "AllowedHeaders": ["Authorization"],
+                "AllowedMethods": ["GET", "PUT"],
+                "AllowedOrigins": ["http://jack-demo-s3.s3-website-us-east-1.amazonaws.com"],
+                "ExposeHeaders": [],
+                "MaxAgeSeconds": 3000
+            }
+        ]
+
+58. MFA Delete
+    1. Once enabled, it will be required to:
+        a. Permanently delete an object version.
+        b. Suspend Versioning on the bucket.
+    2. it WON'T be required to:
+        a. Enable versioning
+        b. List deleted versions
+    3. To use MFA Delete, Versioning must be enabled on the bucket.
+    4. Only the bucket owner(root account) can enable/disable MFA Delete. This is one of a few occasions where root account is required.
+    5. CLI is usually needed to configure MFA delete. (course 156)
+
+59. S3 Access Logs: 
+    a. For audit purpose, you may want to log all access to S3 buckets.
+    b. Any request made to S3, from any account, accepted or denied, will be logged into another S3 bucket.
+    c. The target S3 bucket for logging must be in the SAME AWS REGION
+
+    WARNING: Never set your logging bucket to be the same as the monitored bucket -> infinite loop
+
+60. Pre-Signed URL:
+    a. Generate Pre-Signed URL using S3 console, AWS CLI or SDK
+    b. Expiration:
+        1. Console: 1 min up to 720 mins(12 hours)
+        2. CLI: using expires-in parameter in seconds(default 3600sec, max: 168 hours)
+    c. Users given the url inherit the permission of the user that generated the url for GET / PUT.
+        3. Use case: you want to give someone outside of AWS, an access to one particular file, without making the file public. The Pre-signed url you give them will carry your credential.
+        4. Example: 
+            a. Only allow logged in users to download a premium video from your s3 bucket.
+            b. allow ever changing list of users to download files by generating pre-signed urls dynamically.
+            c. allow TEMPORARILLY a user to upload a file to a precise location in your s3 bucket, while keeping the S3 bucket private.
+
+61. S3 Glacier Vault Lock (bucket level)
+    a. Adopt a WORM(write once, read many) model.
+    b. Create a Vault Lock policy. 
+    c. Lock the policy for future edit(once the policy is set, it can no longer be changed or deleted)
+    d. S3 Glacier Vault Lock is specifically used when you're working directly with the Amazon S3 Glacier service, not just using the Glacier storage classes within an S3 bucket.
+
+62. S3 Object Lock (object level)
+    a. Versioninng must be enabled.
+    b. Adopt WORM
+    c. Block an object version deletion for a specified amount of time.
+    d. Retention Mode:
+        1. Compliance:
+            a.Version cannot be deleted / overwritten by ANY user, INCLUDING ROOT USER.
+            b.This retention mode can't be changed and period can't be shortened.
+        
+        2. Governance:
+            a. Version cannot be deleted / overwritten by MOST user.
+            b. Lock settings can't be altered by MOST user.
+            c. Some users have permissions to change the retention or delete the object(such as admin)
+    e. Retention Period:
+        1. protect the object for a fixed period, and it can be extended.
+    
+    f. legal hold:
+        1. protect the object indefinitely, INDEPENDENT from retention period / retention mode.
+        2. can be freely placed / removed using s3:PutObjectLegalHold IAM permission.
+
+63. Access Point
+    a. To prevent large complex bucket policy.
+    b. can grant permission to a certain prefix, for example, granting r/w access to /finance.
+    c. people from Finance user group, with proper IAM permission, can access the finance access point above, which in turn gives them access to objects with /finance prefix.
+    d. each access point:
+        1. has its own DNS name.(internet origin or vpc origin)
+        2. an access point policy(similiar to bucket policy)
+    e. if its for private access only:
+        1. set up a access point with vpc origin
+        2. set up a vpc endpoint so private services can reach the access point outside of the vpc. (gataway or inteface endpoint)
+        3. that vpc endpoint must have permissions/policy to access BOTH access point and the target bucket.
+
+64. S3 object lambda:
+    1. kinda like operation on emitted value in reactive programming, which mutates the copy of the object, NOT the object itself.
+    2. only one bucket is needed, on top of which, we create a s3 access point and S3 object lambda access points.
+    3. use case: our application gets full object, and the analytic application gets REDACTED object(with some data deleted):
+    Bucket <-> Supporting Access Point <-> Redacting Lambda Function <-> S3 Object Lambda Access Point <-> Analytics Application
+    4. the Supporting Access Point can be re-used later for other supporting-related applications as well(like Marketing Application, which might use a enriching lambda function, course 163)
+    5. example: 
+        a. Redacting personally identifiable info for analytics.
+        b. Converting across data formats (like converting XML to JSON)
+        c. Resizing / watermarking images on the fly using caller-specific details, such as the user who makes the request to the object.
+    
+
