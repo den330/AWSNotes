@@ -1,0 +1,141 @@
+Applications need to communicate with each other.
+
+There are two types of communication:
+1. Sync (application -> application) 
+    When you just bought something on the application handling purchasing, that application will send a request DIRECTLY to the application that handles shipping, to send the items to you.
+
+2. Async / Event Based (Application -> Queue -> Application)
+    same example as above, but this time, the buying application will place that request in a Queue, the shipping application will check if there is any request available in the queue, if there is, it can pick the request up and process it.
+
+Sync can be problematic when trying to handle large amount of requests occurring at the same time(when there is a sudden spike)
+
+Hence, it helps to DECOUPLE your applications:
+    1. SQS (Queue)
+    2. SNS (pub/sub)
+    3. Kinesis (real-time streaming)
+
+after decoupling, both sides can scale independently.
+
+SQS:
+
+Producer -> Queue -> Consumer
+
+You can have multiple producers sending many messages into the same queue.
+You can also have multiple consumers polling(ask again and again) messages from the same queue.
+
+SQS offers TWO types of queues:
+1. Standard
+2. FIFO (will talk about this later on)
+
+Standard Queue:
+    1. Unlimited throughput (In the context of Amazon SQS and other similar services, "throughput" generally refers to the number of messages that can be sent to and read from a queue per second.)
+    2. Unlimited messages in a queue.
+    3. Default retention of messages: 4 days. But it can be set to maximum of 14 days.
+    4. low latency(getting response quickly, <10ms on publish and receive)
+    5. limitation: 256kb per message sent.
+
+    Note: 
+    1. May have duplicated messages occasionally (at least once delivery), meaning there is a chance more than one consumer process the same message.
+
+    2. May have out of order messages(best effort ordering)
+
+Producing message:
+    1. Produced to SQS using the SDK(SendMessage API)
+    2. Then the message will persist in the queue until one of the following happens:
+      1. a consumer processes and then deletes it
+      2. retention period has expired.
+
+Consuming message:
+    1. Consumers(running on EC2 instances, servers, or AWS Lambda...)
+    2. Polls SQS for messages(receives up to 10 messages at a time)
+    3. Then process the message(example: insert message into RDS db)
+    4. Then delete the message using DeleteMessage API
+
+    Consumers receive and process messages in parallel. Therefore, we can scale consumers horizontally to increase the throughput of processing. With that in mind, we can have our consumers running on ec2 instances within an Auto Scaling Group that pays close attention to a metric: Queue Length. To do that, we can set up an alarm in CloudWatch when the ApproximateNumberOfMessages excceeds a certain level, to increase the number of instances in that ASG.
+
+    Polling Mechanics in SQS:
+        1. Maximum Number of Messages: When making a ReceiveMessage call to SQS, you can specify the maximum number of messages you want to receive, up to a limit of 10 messages per call. This doesn't guarantee that you will receive the maximum number specified, especially if fewer messages are available in the queue at the time of the request.
+
+        2. Visibility Timeout: Once a message is received by a consumer, it is temporarily hidden from other consumers for the duration of the "visibility timeout." This prevents multiple consumers from processing the same message simultaneously. If the message is not deleted within the visibility timeout period, it becomes visible in the queue again and could be received by another poll.
+
+        3. Long Polling: By default, SQS uses short polling, which immediately returns a response, possibly even if there are no messages available. You can opt for long polling by setting the WaitTimeSeconds parameter. Long polling allows the SQS service to wait until a message is available or the long poll times out, reducing the number of empty responses and potentially lowering costs. However, even with long polling, you are not guaranteed to receive all messages in the queue—just some that are available during the polling window.
+
+SQS to decouple application tiers:
+
+    Web application to process uploaded video.
+
+    With one front-end app, if the video is long or if the requests are too many, it can drag down the performance of the app.
+
+    Solution: request -> front-end app in ASG -> SQS Queue -> back-end processing app in ASG -> S3 bucket. (both front-end and back-end can be scaled independently)
+
+Security:
+    Encryption:
+        1. in-flight(https)
+        2. at-rest(kms)
+        3. client-side if you want to perform encryption/decryption yourself
+
+    Access Control: 
+        1. IAM policies to regulate access to SQS API.
+        2. SQS Access Policies(similiar to S3 bucket policies), useful for cross-account access to SQS queues or for allowing other services(SNS, S3...) to write to an SQS queue.
+
+
+Queue Operation:
+    Purge = Delete all messages in a queue.
+
+Message Visibility Timeout: After a message is polled by a consumer, it becomes invisible to other consumers for a period of time. Default: 30 seconds.
+    1. If the timeout has expired and that message being polled has not been EXPLICITLY deleted by the application processing it, then it will become visible again in the queue, to other consumers. (so if the other consumers do the poll now, this message will be returned in the list.)
+
+    2. Takeaway:
+        a. If a message is not processed within the visibility timeout, it will be processed again(by another consumer, or by the same consumer again)
+        b. If the consumer knows the process will take longer than default invisibility timeout, the consumer can call the ChangeMessageVisibility API to get more time.
+        c. If the invisibility timeout is high(hours), and consumer processing the message crashes, re-processing will take time. (it will take hours before the message re-appears in the queue)
+        d. If its too low(seconds), then we may get same message being processed more than once.
+
+
+Long Polling:
+    When a consumer requests message from a queue, it can optinally "wait" for message to arrive if there are none in the queue at the moment. The wait time can be between 1 and 20 seconds.
+
+    It decreases the number of API calls made to SQS while increasing the efficiency and  latency of your application
+
+    It is preferable to short polling.
+
+    It can be enabled at queue level(so it applies to any consumer) or at API level using WaitTimeSeconds(for that particular consumer)
+
+
+FIFO Queue: 
+
+    FIFO means first-in-first-out. The first message that gets in the queue will be the first one to get out.
+
+    Consumer will receive the messages in the same order that they are being produced.
+
+    Limited throughput: 300 msg/s without batching, 3000 with.
+
+    Exactly once send capability (by removing duplicate): Unlike standard queues, FIFO queues don't introduce duplicate messages. FIFO queues help you avoid sending duplicates to a queue. If you retry the SendMessage action within the 5-minute deduplication interval, Amazon SQS doesn't introduce any duplicates into the queue.
+
+    In Amazon SQS FIFO queues, the concept of "duplicates" is specifically tied to the message deduplication process, which uses a deduplication ID to identify and prevent duplicate messages within a 5-minute interval. Here’s how it works and what counts as a "duplicate" in this context:
+
+    Message Deduplication
+
+    1. Deduplication ID**: When you send a message to a FIFO queue, you can specify a `MessageDeduplicationId`. If you do not provide a `MessageDeduplicationId`, SQS uses the content of the message to generate a SHA-256 hash and uses that hash as the deduplication ID.
+
+    2. **5-Minute Deduplication Interval**: Once a message with a particular `MessageDeduplicationId` is successfully received, any other messages sent with the same `MessageDeduplicationId` within the next 5 minutes are considered duplicates and are not added to the queue again.
+
+    Determining Duplicates
+
+    Regarding your example with two identical objects `{name: "jack"}`:
+    - If Content-Based Deduplication Is Enabled**: If the content of both messages is identical and content-based deduplication is enabled, then SQS will automatically treat the second message as a duplicate if sent within the 5-minute deduplication interval, because their content hashes will match.
+    - If Using Explicit `MessageDeduplicationId`: If you explicitly set a `MessageDeduplicationId` for each message, then whether they are treated as duplicates depends on whether you use the same or different IDs for each message.
+
+DB buffer to avoid transaction lost:
+
+    Initial setup:
+    Application taking requests -> sending those requests directly to DB. 
+
+    problem: if the load is too big, some transactions may be lost.
+
+
+    Solution:
+    Application taking requests (multiple instances in an ASG) -> sending those requests as message into SQS queue -> messages getting dequeued by another set of application instances(in another ASG) -> the dequeue application will then send the corresponding requests to db
+
+    These consumer instances process messages sequentially or in batches, based on the queue's configuration and the consumers' capacity. This controlled processing prevents overloading the database.
+
