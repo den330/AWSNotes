@@ -15,3 +15,82 @@ You can create multiple services within a cluster, each managing the lifecycle o
 Task Role gives container of that task permission to interact with AWS resources.
 
 You create clusters and then you deploy tasks OR services in that cluster.
+
+
+-------------------------------------------------------------------------------------
+
+
+Docker: Software development platform to deploy apps.
+
+Apps are packeged in containers that can be run on ANY OS. (they run the same, regardless of where they run):
+    1. Any machine
+    2. No compatibility issues.
+    3. Predictable behavior
+    4. less work
+    5. Easier to maintain and deploy
+    6. Works with any language, any OS, any technology.
+
+Use case: microservices architecture, lift-and-shift apps from on-premises to AWS cloud.
+
+Docker repo:
+    1. Docker Hub: public
+    2. Amazon ECR: public or private
+
+Dockerfile - Build -> Docker Image - Run -> Docker Container
+
+Docker Container Management on AWS:
+    1. ECS(Amazon Elastic Container Service): Amazon's own container platform.
+    2. EKS(Amazon Elastic Kubernetes Service): Amazon's managed Kubernetes(open source)
+    3. AWS Fargate: Amazon's own Serverless container platform, it works with ECS and with EKS.
+    4. Amazon ECR: Store container images.
+
+Amazon ECS
+
+Launch Docker containers on AWS = Launch ECS Tasks on EC2 Clusters.
+
+1. EC2 launch type: 
+    a. you must provision and maintain the infrastructure(the EC2 instances).
+    b. each EC2 instance must run the ECS Agent to register in the ECS Cluster. (The ECS Agent handles tasks such as starting up and stopping Docker containers as directed by ECS, reporting the state of the instance to ECS, and connecting the Docker containers to the appropriate networking layers.)
+    c. AWS takes care of starting / stopping containers.
+
+2. Fargate Launch Type:
+    a. you do NOT provision the infrastructure(no EC2 instances to manage)
+    b. It's all serverless.
+    c. You just need to create task definitions.
+    d. AWS just runs ECS Tasks for you based on the CPU / RAM you need (You specify the CPU and memory that each container needs, and Fargate provides the right amount of compute environment without you having to manage the underlying hardware.).
+    e. To scale, just increase the number of tasks.
+
+Note: a single Amazon ECS cluster can contain instances with different launch types. This means you can have both EC2 and Fargate launch types within the same ECS cluster. But for a single ECS service, you must specify one launch type—either EC2 or Fargate. 
+
+IAM Roles for ECS
+
+    1. EC2 instance profile: (for EC2 Launch Type only):
+        a. Used by the ECS agent. (Important to remember, not by containers)
+        b. Makes API calls to ECS service.
+        c. Send container logs to cloudwatch Logs.
+        d. Pull docker image from ECR
+        e. Reference sensitive data in Secret Manager or SSM Parameter store.
+    
+    2. ECS Task Role(for both type):
+        a. Allows each task to have a specific role (example: Task A role, Task B role)
+        b. Use different roles for different ECS services you run. (example: task A role allows task A to run some API call to S3)
+        c. Task Role is defined in the task definition.
+
+Load Balancer Integrations:
+
+When we have multiple tasks running on multiple instances, and we want to expose these tasks as a HTTP/HTTPS endpoint, we can run an Application Load Balancer in front of the SERVICE.
+
+    1. ALB supported and works for most use cases.
+    2. NLB recommended only for high throughput / high performance use cases, or to pair it with AWS Private Link.
+
+
+ECS Data Persistence: Data Volumes(EFS)
+    1. If you have a cluster container both launch types.
+    2. You can mount EFS file system onto ECS tasks.
+    3. Its a network file system that works for both EC2 and Fargate launch types.
+    4. We can mount it directly on our tasks so that tasks running in different AZ will share the same data in the EFS file system. (EFS is a managed NFS (network file system) that can be mounted directly onto ECS tasks. When setting up your ECS task definitions, you can specify the EFS filesystem as a volume, and then mount this volume in the container definitions where you need persistent storage.)
+    5. Fargate + EFS = Serverless
+    6. Use cases: persistent multi-AZ shared storage for your containers.
+
+    Note: Amazon S3 can NOT be mounted as a file system. (While S3 is ideal for object storage and integrates well with ECS for storing outputs, logs, or backups, it cannot be mounted as a filesystem like EFS. S3 is accessed via API calls for storing and retrieving data, unlike EFS, which can be integrated into the file system of the containers.)
+
