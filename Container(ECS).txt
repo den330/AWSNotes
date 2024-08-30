@@ -94,3 +94,99 @@ ECS Data Persistence: Data Volumes(EFS)
 
     Note: Amazon S3 can NOT be mounted as a file system. (While S3 is ideal for object storage and integrates well with ECS for storing outputs, logs, or backups, it cannot be mounted as a filesystem like EFS. S3 is accessed via API calls for storing and retrieving data, unlike EFS, which can be integrated into the file system of the containers.)
 
+Security groups are attached to each instance, and you can set it to allow http on port 80, then let ALB listen to 80 for incoming http as well, then have this 80:80 mapping.
+
+ECS Service Auto Scaling(Not ASG)
+    1. Automatically increase / decrease the desired number of ECS tasks(not instances!)
+    2. Target Tracking - scale based on target value for one of the following metric:
+        a. Service Average CPU Utilization
+        b. Service Average Memory Utilization - Scale on RAM
+        c. ALB Request Count Per Target - metric coming from ALB
+    3. Step Scaling - scale based on a specified CloudWatch Alarm.
+    4. Scheduled Scaling - scale based on a specified date/time(predictable changes)
+    5. Fargate Auto Scaling is much easier to setup(because of serverless)
+
+    Auto Scaling instances - EC2 launch type:
+        WAYS to Accommodates ECS Service Auto Scaling by adding underlying EC2 instances.
+            1. ASG:
+                a. Scale your ASG based on CPU Utilization
+                b. Add EC2 instances over time.
+            2. ECS Cluster Capacity Provider(usually better than 1):
+                a. used to automatically provision and scale the infrastructure for your ECS tasks.
+                b. Capacity Provider paired with an ASG. (it automatically scales your ASG when needed)
+                c. Add EC2 instances when you're missing Capacity(CPU, RAM)
+
+            Note: When using Cluster Capacity Providers (CCP) linked with an Auto Scaling Group (ASG) in Amazon ECS, the capacity provider manages the scaling of EC2 instances based on the task demands of your ECS services. The capacity provider ensures that there is always sufficient instance capacity to place ECS tasks as they are scheduled. However, the ASG itself can also be set up with its own scaling policies, independent of the ECS tasks, based on broader EC2 instance metrics like CPU utilization, network usage, or other CloudWatch metrics. This dual capability can lead to both systems independently influencing the number of EC2 instances in the cluster.
+
+
+ECS tasks invoked by Event Bridge(A typical serverless architecture to process objects from a S3 bucket.):
+
+1. User uploads a new object onto S3.
+2. Amazon EventBridge receives such event.
+3. It can have a rule so that when such event is received, run a new task in ECS cluster backed by Fargate.
+4. the task has a task role attached to it, so it can retrive the newly uploaded object from S3, process it, and then save the result object into Amazon DynamoDB.
+
+
+ECS tasks invoked by Event Bridge Schedule(typically for batch processing files in S3):
+1. Again we have a EventBridge and a ECS Cluster backed by Fargate.
+2. We schedule a rule to be triggered every 1 hour.
+3. This rule will run a new task in Fargate.
+
+ECS - SQS Queue example:
+1. A service on ECS with 2 tasks.
+2. Messages are sent into SQS queue.
+3. The service itself polls for messages from the queue, and process them.
+4. we can enable ECS Service Auto Scaling on top of the service. (more messages -> more tasks.)
+
+ECS - Intercept Stopped Tasks using EventBridge
+1. when a task starts / stops (state change), it can trigger a event sent to EventBridge.
+2. EventBridge can then alert SNS topics.
+3. SNS then send email to the admin.
+
+
+Note:
+When you set up an ECS service, indeed, you specify parameters such as the desired number of tasks that define how many simultaneous instances of a particular task definition should be maintained in a running state. This setup is generally aimed at ensuring high availability and load balancing for applications that need to be continuously available. However, the concept of launching "new tasks" from EventBridge is slightly different and caters to event-driven, ad-hoc, or scheduled task executions that are not necessarily tied to the continuous availability requirements of a service.
+
+In Amazon ECS (Elastic Container Service), managing task lifecycle and instance termination based on the nature of the tasks (event-driven vs. continuous) involves configuring the ECS service and potentially using AWS features like Auto Scaling Groups (ASG) and ECS Capacity Providers. Here’s how you can distinguish between and manage these two types of tasks:
+
+Question: how do i tell the cluster something like: this task is event-driven, please get rid of the instance once its done its work. That task is continous, please do not get rid of it, ever?
+
+Answer: 
+### 1. Defining Task Definitions
+First, ensure you have distinct task definitions for each type of task:
+- **Event-Driven Tasks**: These tasks are typically designed to perform a job and then terminate, such as processing a file or handling a specific request. They should be configured without persistent storage unless required for the duration of the processing.
+- **Continuous Tasks**: These tasks are configured to run indefinitely, often serving as part of a backend service, API, or any process that requires constant availability.
+
+### 2. Creating ECS Services
+For continuous tasks, create an ECS service:
+- **Service Definition**: When setting up your ECS service, specify parameters such as the desired number of tasks, which should always remain operational. Configure the service to restart tasks automatically if they fail.
+- **Load Balancing**: Attach a load balancer if these tasks serve HTTP traffic, ensuring high availability and traffic distribution.
+
+For event-driven tasks, you can either:
+- **Scheduled Tasks via EventBridge**: Use Amazon EventBridge to trigger these tasks directly from events without a persistent service. Here, tasks are started and then naturally terminate once their job is done.
+- **On-Demand Service**: If tasks need to run only under certain conditions but more frequently, you might set up a separate ECS service with a very low desired count and scale up manually or through triggers when needed.
+
+### 3. Managing Instance Lifecycle with Capacity Providers
+Capacity Providers are powerful tools for managing the server infrastructure needed for these tasks:
+- **ASG Integration**: Link Capacity Providers with an Auto Scaling Group. Configure the ASG to scale based on cluster capacity needs, which adjusts based on task loads.
+- **Managed Scaling**: Enable managed scaling for your Capacity Provider to automatically adjust the capacity of your ASG to meet the demands of both continuous and event-driven tasks. You can define separate capacity providers for different task types if they have significantly different resource needs.
+
+### 4. Task Auto Scaling
+- **Event-Driven Tasks**: If using an ECS service for these tasks, configure ECS task auto scaling to scale down to zero when not in use. This can be managed through CloudWatch alarms that trigger scaling actions based on CPU or memory utilization, or even custom metrics.
+- **Continuous Tasks**: Set up auto scaling rules to maintain a minimum number of running instances at all times, ensuring that the service is always available.
+
+### 5. Monitoring and Adjustments
+Regularly monitor your ECS tasks and the corresponding EC2 instances through CloudWatch to ensure that the scaling policies and task definitions are correctly configured and performing as expected.
+
+### Conclusion
+By leveraging ECS services, Auto Scaling Groups, and Capacity Providers, you can effectively manage the lifecycle of both continuous and event-driven tasks within your ECS cluster. This setup allows you to maintain high availability for continuous services while optimizing costs and resource usage for event-driven tasks that only need to run as required.
+
+###Answer End.
+
+ECR (Elastic Container Registry)
+    1. Store and manage Docker Images on AWS
+    2. Private and Public repo(Amazon ECR Public Gallery)
+    3. Fully integrated with ECS, backed by S3.
+    4. Access is controlled through IAM(permission errors => policy)
+        a. we can assign IAM role to our EC2 instance, and this role will allow our instance to pull images from ECR.
+    5. Supports image vulnerability scanning, versioning, iamges, tags, image life cycle
