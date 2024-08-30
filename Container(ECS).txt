@@ -1,0 +1,17 @@
+Container Def: "Will need this image for the container"
+
+Task Def: "will need this container for this, that container for that"
+
+(Task Def consists of multiple container def and some Task level info, like Task Role)
+
+Service: "Will arrange this amount of instances for this task, that amount of instances for that task" (how many copies of this / that tasks need to be run)
+
+Task Definitions can be thought of as the "what" — what the configuration of the application's containers should be.
+
+Services can be considered the "how" — how these configurations will be deployed, scaled, and maintained over time.
+
+You can create multiple services within a cluster, each managing the lifecycle of a particular task definition. 
+
+Task Role gives container of that task permission to interact with AWS resources.
+
+You create clusters and then you deploy tasks OR services in that cluster.

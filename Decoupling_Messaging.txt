@@ -139,3 +139,86 @@ DB buffer to avoid transaction lost:
 
     These consumer instances process messages sequentially or in batches, based on the queue's configuration and the consumers' capacity. This controlled processing prevents overloading the database.
 
+
+
+SNS: a service can publish a message to a TOPIC which can be subscribed by multiple services.
+
+    The event producer ONLY sends messages to one SNS topic, but we can have as many receivers as we want to listen to the notifications from that topic.
+
+    Each subscriber to the topic will get ALL the messages (note however: if a service subscribes to an SNS topic at a later point, it will NOT receive messages that were published to the topic prior to its subscription)
+
+Fan Out Pattern: Push once in SNS, receive in all SQS queues that are subscribers.
+    
+    Use case: 
+        1. you have a buying service publishing an order message in SNS topic, with two SQS queues as its subscribers: shipping queue and fraud handling queue. Shipping service will poll message from shipping queue, and fraud handling service will pick up the same message, but from fraud handling queue.
+
+        2. For the same combination of:event type(e.g. object create) and prefix(e.g. images/), you can only have ONE S3 Event rule. If you want to send the same S3 event to many SQS queues, use fan-out. (GPT explain: Amazon S3 event notifications allow you to set up rules to send notifications based on specific events like object creation, deletion, etc., within your S3 buckets. However, each rule can only trigger a single notification target per event configuration. If you need to distribute a single S3 event to multiple destinations such as several SQS queues, you would typically use a fan-out pattern. )
+
+    Cross-region delivery: you can setup cross-region delivery so that SNS topic in one region can send message to a SQS queue in another region.
+
+    Note: Need to make sure the SQS queue access policy allow for SNS to write.
+
+
+Amazon Kinesis is a platform on AWS designed to handle large-scale real-time data processing and analysis. It provides services that enable you to easily ingest, process, and analyze streaming data with high throughput and low latency.
+
+    Kinesis Data Streams: capture, process and store data streams.
+    Kinesis Data Firehose: load data streams into AWS data stores.
+    Kinesis Data Analytics: Analyze data streams with SQL or Apache Flink.
+    Kinesis Video Streams: capture, process and store video streams.
+
+    Kinesis Data Streams:
+        1. provision a number of shards that can receive different parts of data.
+        2. producer will send data wrapped in "record"
+        3. record contains the data itself(blob), and a partition key indicating which shard it will go to.
+        4. data streams will then send data to its consumers, also in the form of record, this time, on top of partition key and the data itself, it also contains a Sequence Number indicating where the record is in the shard.
+        
+        GPT:
+        ### How Data Flows Through the System:
+        1. **Data Ingestion**: Producers continually push data to the stream. Each record they send includes a partition key and the data blob.
+        2. **Data Sharding**: Kinesis uses the partition key to determine which shard the data will be placed in. Records with the same partition key will always go to the same shard.
+        3. **Data Storage**: Data in each shard is stored for a default of 24 hours, extendable up to 365 days (retention period). This allows consumers to process data from the past if needed.
+        4. **Data Consumption**: Consumers process data from the shards. They can track their progress using the sequence numbers, which helps in scenarios like application failures or reprocessing.
+        
+        GPT ends.
+
+        Consumption Mode:
+            Standard: pull data, 2MB/s(shared) per shard all consumers.
+            Enhanced(fan-out): push data, 2MB/s(enhanced) per shard per consumer.
+
+
+        Facts:
+            1. Retention between 1 and 365 days.
+            2. Ability to reprocess(replay) data.
+            3. Once data is inserted into Kinesis, it can't be deleted(immutability)
+            4. Data that shares the same partition key goes into the same shard(ordering)
+            5. Producers can send data using: AWS SDK, Kinesis Producer Library(KPL), Kinesis Agent.
+            6. Consumer can receive data with:
+                a. write your own: Kinesis Client Library(KCL), AWS SDK.
+                b. Managed Consumers: AWS Lambda, Kinesis Data Firehose, Kinesis Data Analytics.
+
+        Capacity Modes:
+            1. Provisioned Mode:
+                a. you choose the number of shards provisioned, scale manually or using api.
+                b. each shard gets 1MB/s in (or 1000 records per second)
+                c. 2MB/s out (classic or fan-out consumer)
+                d. You pay per shard provisioned per hour.
+
+            2. On-demand Mode:
+                a. No need to provision or manage the capacity
+                b. Default capacity provisioned(4MB/s in or 4000 records per second)
+                c. Scales automatically based on observed throughput peak during the last 30 days.
+                d. pay per stream per hour & data in/out per GB
+
+        Security:
+            1. Control Access / authorization using IAM policies.
+            2. Encryption in flight using HTTPS
+            3. Encryption at rest using KMS
+            4. You can implement encryption/decryption of data on client side.
+            5. VPC endpoints are available for Kinesis to access within VPC. (allow you to connect to Kinesis Data Streams from within your AWS VPC without using the public internet. This not only enhances security but also reduces data transfer costs. VPC endpoints for Kinesis ensure private connectivity between AWS services, which is crucial for maintaining a secure network architecture.)
+            6. Monitor API calls using CloudTrail.
+                
+
+
+
+
+
