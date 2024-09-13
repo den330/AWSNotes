@@ -1,0 +1,74 @@
+1. IAM = Identity and Access Management, Global service.
+2. Root Account created by default, shouldn't be used or shared.
+3. Users are people within your organization, and can be grouped.
+4. Groups can only contain users, NOT other groups.
+5. Users do NOT have to belong to a group.
+6. A user CAN belong to multiple groups.
+
+Question:
+    If a user belongs to both group A and B. A allows access to a S3 service, yet B does not(deny). Does this user have the access to S3?
+
+Answer:
+    If a user belongs to both Group A and Group B, the explicit deny in Group B’s permissions will take precedence. Therefore, despite Group A granting access, the user will not be able to access the S3 service if Group B has a policy that explicitly denies it. This "deny" rule is one of the key aspects of IAM's permission policies, ensuring secure and precise access control.
+
+7. Users and Groups can be assigned JSON documents called Policies.
+8. Each policy consists of statements/permissions that define the actions allowed or denied, and specify the resources to which these actions apply. Policies enable detailed control over AWS resources, such as specifying which user can access which S3 bucket, or what actions they can perform on EC2 instances.
+9. Least privilege principle: don't give permission that is not needed.
+
+10. Policy Inheritance: if a user belongs to multiple groups, that user will get policy from all the groups it belongs, and if there is a conflict: Explicit deny > Explicit Allow > Implicit deny(default when not specified)
+
+11. Policy Structure:
+    1. Version: Policy Language version.
+    2. id: policy id(optional)
+    3. Statement: One or more individual statement/permission.
+        Statement consists of: 
+            a. Sid: Statement id.
+            b. Effect: Allow / Deny
+            c. Principle: Who(Account/Role/User) does this statement apply to. This is used mostly in resource-based policies (like those in S3). In identity-based policies, the principal is implied as the entity (user/group/role) to which the policy is attached.
+            d. Action: A list of actions to be allowed / denied. Actions correspond to specific operations that can be performed on AWS services, like s3:GetObject or ec2:StartInstances.
+            e. Resouce: A list of resources to which the actions applied to. Resources are specified by their ARN (Amazon Resource Name). It can range from specific objects in an S3 bucket to entire services across AWS.
+            f. Condition(optional): conditions for when this statement is in effect.
+
+12. An inline policy is a type of IAM policy that you can create and manage directly attached to a single IAM user, group, or role. Inline policies are tightly coupled with the entity to which they are attached, meaning that when you delete the user, group, or role, the inline policy is also deleted. This differs from managed policies, which are standalone policies that can be attached to multiple users, groups, or roles within the same AWS account or even across different accounts.
+
+13. AWS Access Options.
+    a. AWS Management Console(protected by MFA + password)
+    b. AWS Command Line Interface(CLI): protected by access keys. 
+    c. AWS Software Developer Kit(SDK): for code, protected by access key. AWS CLI is actually built upon this SDK for Python (Boto3)
+
+    Note: Access to AWS through the CLI is secured using access keys, which consist of an access key ID and a secret access key. These keys provide programmatic access to AWS resources, allowing users to script and automate tasks. Access Key ID ~= username, Secret Access Key ~= password.
+
+    1. Access keys are generated through the AWS console.
+    2. Users manage their own access keys.
+    3. Access keys are secret, just like password, should NOT be shared.
+
+    
+    AWS CloudShell is a browser-based, pre-authenticated shell environment provided by Amazon Web Services. It offers a ready-to-use command line interface that allows you to manage and interact with AWS services directly from your browser without needing to install or configure the AWS CLI on your local machine.
+
+14. IAM Roles.
+    • Some AWS services will need to perform actions on YOUR behalf.
+    • To do so, we will assign permissions to AWS services with IAM Roles.
+    • They are like users used not by actual people but by services / accounts / etc.
+    • Common Roles: EC2 instance Roles, Lambda function roles.
+    • The permissions assigned to IAM roles are the same kind of permissions that you attach to users. They are defined using JSON documents known as policies. These policies specify the actions allowed or denied, and they can be attached to users, groups, or roles within AWS.
+
+15. IAM Security Tools
+    
+    a. IAM Credential Report(account-level)
+        a report that lists all your account's users and the status of their various credentials.
+    (helpful when you want to look at users that have not been changing the password for a long time)
+    b. IAM Access Advisor(user-level)
+        1. Access adviser shows the service permission granted to a user and when those services were last accessed.
+        2. you can use this info to revise your policies.
+
+16. Best Practices:
+    a. do NOT use root account except for aws account setup.
+    b. one physical user = one aws user
+    c. assign users to groups and assign permissions to groups.
+    d. create strong password policy.
+    e. use and enforce the use of MFA.
+    f. create and use roles for giving permissions to aws services.
+    g. use access keys for programmatic access(CLI/SDK)
+    h. Audit permissions of your account using IAM Credentials Report & IAM Access Advisor
+    i. NEVER share IAM users & Access Keys.
+

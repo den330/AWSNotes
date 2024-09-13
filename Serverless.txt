@@ -1,0 +1,4 @@
+1. Serverless is a new paradigm in which developers don't have to manage servers anymore.
+2. They just deploy code.
+3. They just deploy functions.
+4. It does NOT mean there are no servers, it just means you don't have to manage them.

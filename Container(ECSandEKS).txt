@@ -190,3 +190,5 @@ ECR (Elastic Container Registry)
     4. Access is controlled through IAM(permission errors => policy)
         a. we can assign IAM role to our EC2 instance, and this role will allow our instance to pull images from ECR.
     5. Supports image vulnerability scanning, versioning, iamges, tags, image life cycle
+
+
