@@ -1,0 +1,35 @@
+1. EC2 = Elastic Compute Cloud = Infrastructure as a Service.
+
+    IaaS: Provides virtualized computing resources over the Internet. It offers the basic infrastructure of virtual servers, networks, operating systems, and storage through a cloud provider. (example: EC2)
+
+    PaaS: Provides a platform allowing customers to develop, run, and manage applications without the complexity of building and maintaining the infrastructure typically associated with developing and launching an app. (example: Elastic Beanstalk)
+
+    IaaS offers more control to users over the IT resources, whereas PaaS provides a higher level abstraction of these resources to simplify the development process.
+
+2. EC2 service mainly consists in the capability of: 
+    a. renting virtual machine(EC2 instance) 
+    b. Storing data on virtual drives(EBS)
+    c. Distributing load across machines(ELB)
+    d. Scaling the services using an auto-scaling group(ASG)
+
+3. Sizing and Config Options
+    a. OS: Linux, Windows or Mac OS
+    b. How much compute power and cores(CPU)
+    c. How much RAM
+    d. how much storage:
+        1. Network attached(EBS & EFS)
+        2. hardware(EC2 instance store)
+    e. Network card: speed of the card, Public ip address
+    f. Firewall rules: security group. 
+    g. Bootstrap script(configure at first launch): EC2 User Data.
+
+4. EC2 User Data
+    a. bootstrapping means launching commands when a machine starts.
+    b. That script is only run ONCE at the instance FIRST start.
+    c. EC2 user data is used to automate boot tasks such as:
+        1. installing updates.
+        2. installing software.
+        3. Downloading common files from the internet.
+        4. anything you can think of.
+    d. EC2 User Data Script runs with the ROOT user(of the instance, not the AWS account). (any command you have there, will have sudo right)
+
