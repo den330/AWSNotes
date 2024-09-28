@@ -33,3 +33,73 @@
         4. anything you can think of.
     d. EC2 User Data Script runs with the ROOT user(of the instance, not the AWS account). (any command you have there, will have sudo right)
 
+5. EC2 instance types
+    m5.2xlarge
+    m: instance class
+    5: generation
+    2xlarge: size within the instance class (memory, cpu)
+
+    a. General purpose
+        1. greate for diversity of workloads like web servers or code repo
+        2. balance between: compute, memory and networking
+    b. Compute Optimized
+        1. good for intensive tasks that require high performance processors:
+            a. batch processing workloads.
+            b. media transcoding
+            c. high performance web servers
+            d. high performance computing(hpc)
+            e. Scientific modeling and machine learning
+            f. dedicated gaming servers
+    c. Memory Optimized
+        1. Fast performance for workloads that process large data sets in memory
+            a. High performance relational/non-relational database.
+            b. Distributed web scale cache stores.
+            c. In-memory databases optimized for BI (business intelligence)
+            d. Applications performing real-time processing of big unstructured data.
+    d. Storage Optimized
+        1. Great for storage-intensive tasks that require high, sequential read and write access to large data setws on local storage
+            a. high frequency online transaction processing(OLTP) systems.
+            b. Relational & NoSQL databases.
+            c. Cache for in-memory databases(like redis)
+            d. data warehousing applications
+            e. distributed file systems.
+
+    Note: 
+        
+        The SQL database itself still resides on a hard drive or storage device, not entirely in RAM. However, the role of RAM in a Memory Optimized instance is crucial for enhancing database performance, primarily in two ways:
+
+        1. Caching: Databases use RAM to cache frequently accessed data and indexes. This caching reduces the need to access the disk for these items, which speeds up query response times significantly. The larger the memory, the more data and indexes can be kept in cache, improving performance for read-intensive applications.
+
+        2. TempDB and Working Set: For many relational databases like SQL Server or MySQL, certain operations such as joins, sorts, or temporary computations are performed in memory. Having a larger RAM means these operations can execute faster and more efficiently, as there is less need to write intermediary results back to disk.
+
+6. Security Groups
+    a. They are the fundamental of network security in AWS.
+    b. They control how traffic is allowed into or out of our EC2 instances.
+    c. They ONLY contain ALLOW rules.
+    d. Rules can be referenced by IP or by security group.
+    e. They are "firewall" of EC2 instances.
+    f. They regulate:
+        1. Access to ports.
+        2. Authorized IP ranges - IPv4 and IPv6
+        3. Control of inbound network(from other to the instance) (all inbound is blocked, by default)
+        4. Control of outbound network(from the instance to other) (allow any traffic out of it, by default, any ip, any port)
+    g. Can be attached to multiple instances and one instance can have multiple security groups.
+    h. Locked down to a region / VPC combination.
+    i. live outside of EC2, if traffic is blocked , the EC2 instance won't see it.
+    j. It's good to maintain one separate security group for SSH access.
+    k. If your application is not accessible(time out), then it's a security group issue.
+    l. if your application gives a "connection refused" error, then it's an application error or it's not launched.
+    m. Referencing other security groups: 
+        1. allow traffic from instances with certain security group to come in.
+        2. allow traffic to go out to instances with certain security group.
+
+    n. classic ports to know:
+        22 = SSH(Secure Shell) - log into a linux instance
+        21 = FTP(File transfer Protocol) - upload files into a file share
+        22 = SFTP(Secure File Transfer Protocol) - upload files using SSH
+        80 = HTTP - access unsecured websites
+        443 = HTTPS - access secured websites
+        3389 = RDP(Remote Desktop Protocol) - log into a Windows instance
+    
+    Note: No, visitors do not need to type :80 after the IP address when you allow inbound HTTP traffic on port 80. Port 80 is the default port for HTTP traffic. When a web browser makes a request to a website without specifying a port, it automatically uses port 80 for HTTP and port 443 for HTTPS. Therefore, if your web server is listening on port 80 and someone types in your website address or IP without a port number, the browser assumes port 80 by default.
+
