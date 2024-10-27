@@ -1,0 +1,94 @@
+1. vertical scalability: increase size of a single instance. (use case: non-distributed db)
+2. horizontal scalability: increase the number of instances.
+3. High Availability: 
+    a. related to horizontal scalability
+    b. runnning the application in at least 2 data centers(= 2 AZs)
+    c. goal is to survive a data center loss.
+
+4. High Avai for EC2:
+    1. Vertical: increase instance size (from t2.nano to u-I 2tb I .metal)
+    2. horizontal: increase the number of instances(ASG, ELB)
+    3. High Avai: Run instances for the same application across multi AZs. (ASG multi AZ, ELB multi AZ)
+
+
+
+Load Balancer: servers that forward traffic to multiple servers(EC2 instances) downstream.
+
+    Use case:
+        1. Spread load.
+        2. Expose a single point of access(DNS) to your application
+        3. Seamlessly handle failures of downstream instances.(health check)
+        4. regular health check to instances.
+        5. provide SSL termination(HTTPS) for your website.
+        6. enforce stickiness with cookies
+        7. High availability across zones.
+        8. Separate public traffic from private ones.
+
+Elastic Load Balancer: MANAGED load balancer
+    1. AWS guarantees that it will be working
+    2. AWS takes care of upgrades, maintenance, high avai.
+    3. integrated with many AWS services(ASG, ECS...)
+
+Health Checks:
+    1. done on a port and a route (like endpoint: /health, port: 4567)
+    2. If the instance does not respond with a 200(OK), then it is considered unhealthy.
+
+Types: 
+    1. Classic LB(deprecating)
+    2. Application LB (HTTP, HTTPS, WebSocket)
+    3. Network LB (TCP, TLS, UDP)
+    4. Gateway LB (Operate at layer 3, network layer.  IP Protocol)
+
+The EC2 instances behind your ELB should have a security group that only allows inbound traffic of type HTTP from the ELB that uses a particular security group.
+
+
+
+
+Application LB: at layer 7 (HTTP)
+    
+    1. Load balancing to multiple HTTP applications across machines(target groups)
+    2. Load balancing to multiple applications on the same machine(ex: containers)
+    3. Support for HTTP/2 and WebSocket.
+    4. Support redirect(From HTTP to HTTPS for example)
+    5. Routing tables to different target groups
+        a. routing based on path in URL(example.com/users and example.com/posts)
+        b. routing based on hostname in URL(one.example.com and other.example.com)
+        c. routing based on query strings and headers(example.com/users?id=123&order=false)
+
+    1. ALB are a great fit for micro services and container based application(Docker and Amazon ECS)
+    2. Has a port mapping feature to redirect to a dynamic port in ECS.
+
+
+a target Groups can consist of:
+    
+    1. EC2 instances(can be managed by ASG) - HTTP
+    2. EC2 tasks(managed by ECS itself) - HTTP 
+    3. Lambda functions - HTTP request is translated into a JSON event.
+    4. IP Addresses - must be private IPs.
+    
+    ALB can route to multiple target groups.
+    Health checks are at the target group level.
+
+
+Client IP will be inserted into header: X-Forwarded-For. 
+
+
+
+Network Load Balancer: operates at Layer 4, allowing:
+    1. Forward TCP  & UDP traffic to your instances.
+    2. Handle millions of requests per second.
+    3. Ultra-low latency
+
+    NLB has one static IP per AZ, and supports assigning Elastic IP(helpful for whitelisting specific IP)
+
+    NLB are used for extreme performance, TCP or UDP traffic
+
+    Target Groups:
+        1. EC2 instances.
+        2. Private IP addresses.
+        3. Application Load Balancer.(static ip for az + powerful rules for http)
+
+        Health Checks support the TCP, HTTP and HTTPS protocol
+
+Gateway LB: additional "firewall" that all traffic must go through first for security check.
+

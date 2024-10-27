@@ -1,0 +1,100 @@
+EBS: Elastic Block Store
+
+An EBS volume is a NETWORK drive you can attach to your instances while they run.("network USB stick")
+    > can persist data after termination
+    > bound to one AZ. (you can't create a volume in us-east-1a and attach it to an instance in us-east-1b)
+    > can be detached from one instance and re-attach to another one.
+    > Have a provisioned capacity(have to say how many GBs you want in advance)
+    > can increase the capacity over time
+    > By default, root EBS volume is deleted on termination.
+    > By default, any other EBS volume is NOT deleted on termination.
+
+Volume Types:
+    1. General purpose SSD (gp): Cost effective, low latency. With GP3, you can independently set IOPS and throughput. With GP2, size of the volume and IOPS are linked. 
+
+    2. Provisioned IOPS(PIOPS)(io1, io2) SSD: Critical applications with sustained IOPS performance. Great for database workloads. Supports Multi-attach.
+
+    3. Hard Disk Drives(HDD): Cannot be a boot volume. st1: Throuput optimzed. st2: cold HDD, low cost. for archive data.
+
+EBS multi-attach: 
+    1. ONLY available for io1 and io2 type. Each instance has full read / write permission. 
+    2. Bound to one AZ.
+    3. Up to 16 EC2 instances at a time.
+    4. Must use a file system that's cluster-aware(not XFS, EXT4, etc..) (see below)
+
+    GPT: Requirement for a Cluster-Aware File System: To use EBS Multi-Attach effectively, you must use a file system that is aware of multiple writers, like GFS2 or Oracle Cluster File System (OCFS2). This is crucial because typical file systems like XFS or EXT4 do not handle concurrent write operations from multiple nodes, which could lead to data corruption.
+
+EBS Snapshots
+
+    1. Make a backup(snapshot) of your EBS volume at a point of time.
+    2. Not necessary to detach volume to do snapshot, but recommended.
+    3. Can copy snapshots across AZ or Region
+
+Snapshots Feature:
+    1. EBS Snapshot Archive: cheaper, but takes time to restore.
+    2. Recycle Bin for EBS snapshots: setup rules to retain deleted snapshots so you can recover them after an accidental deletion. retetion: from 1 day to 1 year.
+    3. Fast Snapshot Restore(FSR): No lazy load, the EBS volume generated from the snapshot is ready to use without any latency. Expensive option.
+
+EBS Encryption:
+        1. Data at rest is encrypted.
+        2. Data moving between the instance and the volume is encrypted.
+        3. all snapshots are encrypted.
+        4. All volumes created from the snapshots are encrypted.
+
+        How to encrypt an unencrypted EBS volumes:
+            1. Create a snapshot of it.
+            2. encrypt the snapshot(using copy), this creates a new snapshot that is encrypted.
+            3. create a new ebs volume from the new snapshot(the volume will also be encrypted.)
+            4. now you can attach the encrypted volume to the original instance.
+
+AMI: Amazon Machine Image, a customization of an EC2 instance.(own software, config, OS...)
+    1. Faster boot / config time as all your software is pre-packaged.
+    2. Built for a specific region, but can be copied across regions.
+    3. You can launch EC2 instances from: 
+        a. A public AMI: AWS provided.
+        b. Your own AMI
+        c. An AWS marketplace AMI
+    
+    Process:  Start an EC2 instance -> Customize it -> Stop instance -> Build AMI(also creates EBS snapshots as reference destination) -> Launch instances from this AMI.
+
+EC2 Instance Store: Physical Connection, hence high performance.
+    1. use for when you want extremely high disk performance.
+    2. EC2 instance Store lose their storage if they're stopped or terminated(ephemeral)
+    3. Good for buffer / cache / scratch data / temp content.
+    4. Risk of data loss if hardware fails.
+    5. backups and replication are YOUR responsibility
+
+EFS: Elastic File System
+
+    1. Managed NFS(Network file system) that can be mounted on many EC2 across multi-AZ.
+    2. pay per use, scale automatically, no need to provision upfront.
+    3. Only compatiable with Linux based AMI(not windows)
+
+    Perfomance mode:
+        1. General Purpose: latency sensitive
+        2. Max I/O: higher latency, higher throuput
+    
+    Throughput Mode:
+        1. Bursting - 1TB = 50 MiB/s + burst of up to 100 MiB/s (related to size)
+        2. Provisioned - set your throughput regardless of storage size.
+        3. Elastic - Automatically scale throughput or down based on workloads.
+
+    Storage Classes:
+        1. Storage Tiers:
+            Standard: for frequently accessec files
+        2. Infrequent access(EFS-IA): cost to retrive files, lower price to store.
+        3. Archive: rarely accessed data(few times a year), 50% cheaper.
+
+        You can implement lifecycle policy to move files between them.
+
+    availability:
+        1. standard: multi-az
+        2. one-zone: One AZ(you can have one-zone-IA for storage class)
+
+    
+
+
+
+
+
+
