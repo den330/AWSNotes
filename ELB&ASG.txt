@@ -168,6 +168,35 @@ Connection Draining
 
 Auto Scaling Group(ASG)
 
+    1. ASG can be linked to a target group of ELB
+    2. ASG can span across multiple AZs
+    3. change the current desired capacity(automatically or manually) to change the number of instances in the ASG.
+    4. ASG starts with the desired cap you set, which must be between min cap and max cap.
+    5. when ASG scalling is triggerd (by you or by cloudwatch or some other metric), its desired capacity is adjusted accordingly.
 
+Scaling Policies:
+    1. Dynamic Scaling:
+        a. Target Tracking Scaling
+            1. simple to setup
+            2. example: I want the average ASG CPU to stay around 40%.
+        b. Simple / Step Scaling
+            1. When a CloudWatch alarm is triggered(example: CPU > 70%), then add 2 units
+            2. When a CloudWatch alarm is triggered(example: CPU < 30%), then add 1 unit
+        
+    2. Scheduled Scaling:
+        a. Anticipate a scaling based on known usage pattern.
+        b. example: Increase the min capacity to 10 at 5 pm on Fridays.
 
-    
+    3. Predictive Scaling:
+        a. continously forecast load and schedule scaling ahead. (Machine Learning)
+
+Good metrics to scale on:
+    1. CPUUtilization: Average CPU utilization across your instances.
+    2. RequestCountPerTarget
+    3. Average Network In/Out(if your application is network bound).
+
+Scaling Cooldowns: After a scaling activity happens, you are in the cooldown period(default: 300 sec), during which, the ASG will not launch or terminate additional instances(to allow for metric to stablize). Flow:
+    1. Scaling Action occurs.
+    2. Is cooldown in effect? if yes, go to 3, if no, go to 4.
+    3. ignore action
+    4. launch or terminate instance according to the action
