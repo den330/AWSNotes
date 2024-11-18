@@ -1,0 +1,175 @@
+RDS: Relational Database Service
+    1. It's a managed DB service for DBs that use SQL as a query language.
+    2. It allows you to create DBs in the cloud that managed by AWS.
+        a. Postgres
+        b. MySQL
+        c. MariaDB
+        d. Aurora (AWS Proprietary database)
+        e. ...
+
+RDS vs Deploy own DB on EC2 Instance:
+    1. RDS is a MANAGED service: (hence you can't SSH into the instance)
+        a. auto provisioning, os patching
+        b. continous backup, and restore to a specific timestamp(point in time restore).
+        c. monitoring dashboards
+        d. read replica
+        e. multi-AZ setup for DR(disaster recovery)
+        f. scaling (horizontal and vertical) automatically
+        g. maintenance window for upgrade
+        h. storage backed by EBS
+
+Read Replica vs Multi AZ
+    1. Read Replica
+        a. up to 15
+        b. Within AZ, Cross AZ, or Cross Region
+        c. Replication is ASYNC, so reads are EVENTUALLY consistent.
+        d. Replicas can be promoted to be a standalone DB. All replication mechanism stops after that. 
+        e. application must update connection string to leverage read replica
+        f. read replicas in the same region don't require replication fee. Cross-region ones do.
+
+        Use case:
+            for when a reporting application is needed, on top of the main application, to run some analytics => Create a read replica for that reporting application, so it won't slow down the main DB for the main application
+
+    2.RDS Multi AZ
+        1. standby instance in another AZ. (RDS automatically provisions and maintains a synchronous standby replica of your database in a different Availability Zone (AZ))
+        2. sync / instant replication to this standby db, keeping track of every single change made to the main db.
+        3. one DNS name, automatic failover in case of loss of AZ, network or instance, hence high availability.
+        4. don't need to do anything on your side, its all automatic.
+        5. It is NOT used for scaling. Its just a standby db for failover.
+        6. Read Replicas in Amazon RDS can be configured to use Multi-AZ deployments for enhanced disaster recovery
+
+        Operation: Transition RDS single-AZ into multi-AZ:
+            a. zero downtime operation. (no need to stop db)
+            b. click "modify" on the DB to enable multi-AZ.
+            c. the following will happen internally:
+                1. A snapshot of the main DB is taken
+                2. A new DB is restored from the snapshot, in the new AZ.
+                3. synchronization is established between the two DBs.
+
+
+Aurora: Proprietary(自有) technology from AWS(not open sourced)
+    1. It supports: Postgres and MySQL(that means your drivers will work as if Aurora was a Postgres or MySQL database)
+    2. Aurora is "AWS Cloud Optimized"
+    3. its storage Automatically grows in increments of 10GB, up to 128 TB.
+    4. can have up to 15 replicas and the replication process is faster than MySQL.
+    5. Failover in Aurora is instant. It's HA native.
+    6. costs more than RDS.
+
+    HA and Read Scaling:
+        a. 6 copies of your data(not database!) across 3 AZ.
+            1. 4 needed for writes
+            2. 3 needed for reads
+            3. self healing with peer-to-peer replication
+            4. storage is striped across 100s of volumes.
+        b. One Aurora instance takes writes(master)
+        c. Master + up to 15 Aurora Read Replicas serve reads.
+        d. Automatic failover for master(to one of the replicas) in less than 30 secs.
+        e. Support for cross region replication
+
+    Aurora DB Cluster:
+
+    1. Client -> Writer Endpoint -> Master -> Read and Write
+        a. if master fails, the writer endpoint would just point to the new master(promoted replica), but client still interact with the same Writer Endpoint.
+    
+    2. Client -> Read Endpoint -> Replicas -> Read
+        a. we can autoscaling replicas so we always have the right amount of replicas for demand.
+        b. we do NOT have to remember all the urls for these dynamic replicas that can appear or disappear anytime, instead, we only interact with Read Endpoint, which will interact with replicas for us and handle Connection Load Balancing among existing replicas.
+
+    List of Aurora Features:
+        1. Automatic fail-over
+        2. Backup and recovery
+        3. Isolation and security
+        4. Industry Compliance
+        5. Push-button scaling
+        6. Automatic patching with Zero Downtime
+        7. Advanced monitoring
+        8. Routine maintenance
+        9. Backtrack: restore data at any point of time WITHOUT using backups.
+
+
+    Aurora Replicas - Custom Endpoint
+        1. We can have different sized replicas within the same db clusters. (e.g: db.r3.large, db.r5.2xlarge)
+        2. we can have a custom endpoint, on top of our standard reader endpoint, to point only to a specific subset of all the replicas: for example, a custom endpoint only pointing to replicas that are db.r5.2xlarge 
+        3. use case: run analytical queries on specific replicas.
+        4. The Reader endpoint is generally not used after defining Custom Endpoints.
+        5. Common practice: set up many different custom endpoints for various workloads.
+    
+    Aurora Serverless
+        1. Automated database instantiation and auto-scaling based on actual usage.
+        2. Good for infrequent, intermittent or unpredicable workloads.
+        3. No capacity planning needed.
+        4. pay per second, can be most cost-effective
+        5. Client -> Proxy Fleet(managed by aurora) -> instantiation / auto scaling DBs based on usage automatically.
+    
+    Global Aurora
+        1. Aurora Cross Region Read Replicas:
+            a. useful for disaster recovery
+            b. simple to put in place
+        2. Aurora Global Database(recommended):
+            a. 1 Primary Region (read / write)
+            b. up to 5 secondary (read-only) regions, replication lag is less than 1 sec.
+            c. up to 16 read replicas per secondary region.
+            d. helps for decreasing latency
+            e. Promoting another region(for disaster recovery) has an RTO of < 1 minute.
+            f. Typical cross-region replication takes less than 1 sec.
+
+    Aurora Machine Learning
+        1. Enables you to add ML-based predictions to your applications via SQL
+        2. Simple, optimized and secure integration between aurora and AWS ML services.
+        3. Supported: Amazon Sage Maker, Amazon Comprehend.
+        4. You don't need to have ML experience.
+        5. use case: fraud detection, ads targeting, sentiment analysis, product recommendations.
+
+        Simple example:
+        Your application sends a query regarding recommended products, upon receiving the query, aurora will send user's profile, shopping history ... to related amazon ML services, which will then produce the predictions(red shirt, blue pants...) and send them back to aurora. Aurora will then return them as query result, back to the application.
+
+RDS Backups
+    1. Automatic backups:
+        a. Daily full backup of the database(during the backup window)
+        b. Transaction logs are backed-up by RDS every 5 minutes
+        c. ability to restore to any point in time (from oldest backup to 5 minutes ago)
+        d. 1 to 35 days of retention, set 0 to disable automated backups.
+    
+    2. Manual DB Snapshots:
+        a. manually triggered by the user
+        b. retention of backup for as long as you want.
+
+    Trick: in a stopped RDS DB, you will still pay for storage. If you plan on stopping it for a long time, snapshot it and restore later instead.
+
+Aurora Backups
+    1. Automatic backups:
+        a. 1 to 35 days retention(cannot be disabled)
+        b. point-in-time recovery in that timeframe
+    2. Manual DB Snapshots:
+        a. Manually triggered by the user
+        b. Retention of backup for as long as you want.
+
+RDS & Aurora Restore Options
+    1. Restoring a RDS / Aurora backup or a snapshot creates a new database.
+    2. Restoring MySQL RDS database from S3
+        a. Create a backup of your on-premises database
+        b. Store it on Amazon S3(object storage)
+        c. Restore the backup file onto a new RDS instance running MySQL
+    3. Restoring MySQL Aurora cluster from S3
+        a. Create a backup of you on-premises database using Percona XtraBackup
+        b. Store the backup file on Amazon S3
+        c. Restore the backup file onto a new Aurora cluster running MySQL
+
+Aurora Database Cloning
+    1. Creates a new Aurora DB Cluster from an existing one (production Aurora -> Stagin Aurora)
+    2. Faster than snapshot & restore.
+    3. Uses copy-on-write protocol:
+        a. initially, the new DB cluster uses the same data volume as the original one(fast and efficient, no actual copy happens at this point)
+        b. When updates are made the the new DB cluster, Aurora allocates additional storage for these new or altered data blocks. The modified data is then written to these new storage blocks, a process known as "copy-on-write."
+        c. fast and cost effective
+    4. Useful to create a "staging" database from a "production" databse without impacting the production database. use cases:
+        
+        a. Staging Environments: Perfect for testing new features or updates in a safe environment that mirrors the production environment without risking the integrity of the live data.
+        
+        b.Performance Testing: Allows for performance testing and optimization without impacting production workloads.
+        
+        c.Data Analysis: Analysts can work with real-time production data without the risk of affecting the production environment.
+
+RDS & Aurora Security
+    1. At-rest Encryption:
+    
