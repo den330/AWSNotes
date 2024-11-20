@@ -172,4 +172,83 @@ Aurora Database Cloning
 
 RDS & Aurora Security
     1. At-rest Encryption:
+        a. Database master and replicas encryption using AWS KMS - must be defined at launch time.
+        b. If the master database instance is encrypted, any read replicas will also be encrypted automatically. However, if the master is not encrypted, you cannot have encrypted replicas.
+        c. To encrypt a previously unencrypted database, you need to create a snapshot of the unencrypted database, and then create a new encrypted database instance from that snapshot.
+
+    2. In-flight encryption: TLS-ready by default, use the AWSTLS root certificates client-side.
+    3. IAM Authentication: IAM roles to connect to your database(instead of username / pw)
+    4. Security Groups: Control Network access to your RDS / Aurora DB
+    5 No SSH available except on RDS Custom
+    6. Audit Logs can be enabled and sent to CloudWatch Logs for longer retention.
     
+RDS Proxy
+    1. Fully managed db proxy for RDS.
+    2. Allows apps to pool and SHARE DB connections established with the database. (so 1000 application instances won't need 1000 connections at the same time.)
+    3. Improving db efficiency by reducing the stress on db resources and minimize open connections (and timeouts)
+    4. serverless, autoscaling, highly available(multi-AZ)
+    5. Reduced RDS & Aurora failover time by up to 66%
+    6. no code changes required for most apps.
+    7 enforce IAM authentication for DB, and securely store credentials in AWS Secrets Manager
+    8. RDS proxy is never publicly accessible (must be accessed from VPC)
+        a. typical use case: client -> lambda * n -> RDS proxy -> RDS DB instance.
+
+
+
+Amazon ElastiCache Overview
+    
+    1. Just like RDS getting managed Relational Databases, ElastiCache is to get managed Redis or Memcached.
+
+    2. Cache here means in-memory databases with high performance and low latency.
+    3. Helps reduce load off regular databases for read intensive workloads.
+    4. Helps make your application stateless. (example: with loadbalancer, you might connect to a different instance next time, but your state is still stored, in the standalone cache, not in the application itself, so the application itself can be stateless.)
+    5. AWS take care of OS maintenance / patching, optimizations, setup, config, monitoring, failure recovery, and backups.
+    6. Using ElastiCache involves heavy application code changes.
+
+    Solution Architecture - DB Cache
+        1. Applications queries ElastiCache
+            a. if available -> cache hit. 
+            b. if not available -> cache miss -> get from RDS and store the result in ElastiCache.
+        2. Helps relieve load in RDS
+        3. Cache must have an invalidation strategy to make sure only the most current data is used in there.
+
+    Solution Architecture - User Session Store
+        1. User logs into any of the application instances.
+        2. The application writes the session data into ElastiCache.
+        3. The user hits another instance of our application.
+        4. the new instance retrieves the data from ElastiCache so the user won't have to log in again.
+
+    REDIS vs MEMCACHED
+        Redis:
+            1. Multi AZ with auto failover
+            2. Read replicas to scale reads and have high availability
+            3. Data durability using AOF persistence
+            4. Backup and restore features.
+            5. Supports Sets and Sorted Sets
+
+        MEMCACHED
+            1. Multi-node for partitioning of data(sharding)
+            2. No high availability(replication)
+            3. Non persistent
+            4. Backup and restore(only for the Serverless version)
+            5. Multi-threaded architecture.
+
+    ElastiCache Security
+        1. ElastiCache supports IAM Auth for Redis
+        2. IAM Policies on ElastiCache are only used for AWS API-level security
+        3. Redis AUTH
+            a. you can set a "password/token" when you create a Redis cluster.
+            b. This is an extra level of security for your cache(on top of security groups)
+            c. Support SSL in flight encryption
+        4. Memcached
+            a. Supports SASL-based authentication(advanced)
+
+    Patterns for ElastiCache
+        1. Lazy Loading: all the read data is cached, data can become stale in cache.
+        2. Write Through: Adds or updates data in the cache when written to a DB(no stale data)
+        3. Session Store: Store temp session data in a cache(using TTL features.)
+
+    ElastiCache - Redis Use Case
+        1. Gaming Leaderboards are computationally complex
+        2. Redis Sorted sets guarantee both uniqueness and element ordering
+        3. Each time a new element added, it's ranked in real time, then added in correct order.
