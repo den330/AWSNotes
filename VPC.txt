@@ -1,0 +1,133 @@
+1. General Graph:
+    
+    https://drive.google.com/file/d/1HJXxHXpL3R_oD3mlw1TTQsrsLAcFYNwa/view?usp=drive_link
+
+    Relevant Concepts:
+        1. Region: This is a geographical area that hosts multiple isolated locations known as Availability Zones.
+
+        2. VPC (Virtual Private Cloud): A virtual network dedicated to your AWS account where you can define and manage a virtual network space.
+
+        3. Subnets: These are segments within a VPC that allow you to allocate IP address ranges and place resources into those segments.
+        - Public Subnet: Generally, resources like web servers are placed here, with internet access via an Internet Gateway.
+        - Private Subnet: Used for resources that shouldn't be directly accessible from the internet, such as databases.
+
+        4. Internet Gateway: Allows communication between resources in your VPC and the internet.
+
+        5. NAT Gateway: Enables instances in a private subnet to connect to the internet or other AWS services but prevents the internet from initiating a connection with those instances.
+
+        6. Security Groups and Network Access Control Lists (NACLs): Act as firewalls for associated EC2 instances, controlling both inbound and outbound traffic at the instance and subnet level.
+
+        7. Router and Route Table: Defines rules to direct network traffic from one subnet to another subnet or out to the internet.
+
+        8. VPN Gateway and Direct Connect (DX): Provide secure connections from your on-premise network to your AWS and other VPCs.
+        - VPN Gateway: Connects your on-premise networks to your VPC over the internet securely.
+        - Direct Connect: Establishes a dedicated private connection from a remote network to your VPC.
+
+        9. VPC Endpoints: Allows private connections to AWS services using private IP addresses.
+
+        10. Transit Gateway: Connects VPCs and on-premise networks through a central hub, simplifying network management and reducing operational costs.
+
+        11. VPC Peering Connections: Allows networking connections between two VPCs, enabling you to route traffic between them using private IP addresses.
+
+        12. CloudWatch: Monitors your AWS resources and applications, providing logs, metrics, and events.
+
+        13. S3 (Simple Storage Service): Provides scalable object storage for data backup, archival, and analytics.
+
+        14. Customer and VPN Gateway: Facilitates a secure and private connection between your corporate data center and your VPC, typically through a VPN connection.
+
+2. CIDR: Classless Inter-Domain Routing - a method for allocating IP addresses. (It is used in Security Groups rules and AWS networking in general.)
+    a. CIDR notation is expressed as WW.XX.YY.ZZ/NN, where WW.XX.YY.ZZ(base IP) represents the IP address and /NN (the prefix length, or subnet mask) specifies how many bits are used for the network portion of the address. The remaining bits are used for host addresses within the network.
+        example:
+            1. 0.0.0.0/0
+                Interpretation: This represents all IP addresses. In the context of security rules, using 0.0.0.0/0 means the rule applies to any IP address from anywhere in the world. It's common in rules that specify public internet access.
+            2. 192.168.0.0/26
+                Interpretation: The /26 indicates that the first 26 bits are the network portion of the address. This leaves 6 bits for host addresses (since 32 - 26 = 6). Therefore, this subnet can include:
+                    2^6 = 64 addresses, ranging from 192.168.0.0 to 192.168.0.63
+                    192.168.0.0 is the network address and 192.168.0.63 is the broadcast address, with the addresses in between usable for hosts within this subnet.
+
+3. Public vs Private IP (IPv4)
+    a. The Internet Assigned Numbers Authority(IANA) established certain blocks of IPv4 addresses for the use of private(LAN) and public(Internet) addresses.
+
+    b. Private IP can only allow certain values:
+        1. 10.0.0.0 - 10.255.255.255(10.0.0.0/8) in big networks.
+        2. 172.16.0.0 - 172.31.255.255(172.16.0.0/12) -> AWS default VPC range.
+        3. 192.168.0.0 - 192.168.255.255 (192.168.0.0/16) -> home networks
+
+    c. All the rest of the IP addresses on the Internet are Public.
+
+
+
+VPC: Virtual Private Cloud
+
+1. All new AWS accounts have a default VPC (for each region.)
+
+2. When you launch new EC2 instances without specifying a VPC, they will automatically be placed into the default VPC. This simplifies the process for new users or applications that do not require custom network configurations. In the default VPC, if no subnet is explicitly chosen during the instance launch process, AWS selects the default subnet based on the Availability Zone that the instance is created in.
+
+3. Default VPC has Internet connectivity and all EC2 instances inside it have public IPv4 addresses, a public and a private IPv4 DNS names. The default VPC in AWS is configured with ease of use in mind, providing every instance with public internet access out of the box. For configurations that require true private subnets (without direct internet access), you'll typically need to set up a custom VPC.
+
+4. You can have multiple VPCs in an AWS region(soft limit: 5)
+5. Max CIDR per VPC is 5, for each CIDR: min size is /28, max size is /16
+6. Because VPC is private, only the private IPv4 ranges are allowed.
+7. Your VPC CIDR should NOT overlap with your other networks(e.g., corporate)
+    example: VPN Connections: If your on-premises network uses the 192.168.10.0/24 range and your cloud VPC also uses 192.168.10.0/24, setting up a VPN between the two would lead to routing conflicts. Routers would not be able to determine whether traffic destined for 192.168.10.10 should be directed to a host in the on-premises network or a host in the cloud VPC.
+
+8. Subnet is a subrange of a CIDR block.
+    a. AWS reserves 5 IP addresses(first 4 and last 1) in each subnet.
+    b. These 5 IP addresses are not available for use and can't be assigned to an EC2 instance.
+    c. Example:
+        if the CIDR block of the subnet is 10.0.0.0/24, then reserved IP addresses are:
+            1. 10.0.0.0 - Network Address
+            2. 10.0.0.1 - reserved by AWS for the VPC router
+            3. 10.0.0.2 - reserved by AWS for mapping to Amazon-provided DNS.
+            4. 10.0.0.3 - reserved by AWS for future use.
+            5. 10.0.0.255 - Network Broadcast Address. AWS does not support broadcast in a VPC, therefore the address is reserved.
+
+    d. if you need 29 IP addresses for EC2 instances:
+        1. you cannot choose a subnet of size /27:
+            2^(32 - 27) = 32 => 32 - 5 = 27 < 29
+        2. You need to choose a subnet of size /26:
+            2^(32 - 26) = 64 => 64 - 5 = 59 > 29
+
+    e. An AZ can contain multiple subnets, public or private or both.
+    f. allow public ip auto assign on public ones, and don't allow it on private ones.
+
+
+Internet Gateway(IGW): Allows resources(like EC2 instances) in a VPC connect to the internet.
+    1. It scales horizontally and is highly available and redundant.
+    2. Must be created separately from a VPC.
+    3. One VPC can only be attached to one IGW, and vice versa.
+    4. Internet Gateways on their own do not allow internet access, we must also edit Route tables to make it work.
+    5. There aren't separate physical or virtual routers for each subnet. The VPC router is a universal function that exists for the entire VPC. It follows the rules set on the route tables which is attached to each subnet.
+    6. demo steps(internet access for PUBLIC subset):
+        1. Create VPC
+        2. Create a public subnet(enable public ip assignment) and a private one under the same AZ.
+        3. Create a IGW, and then attach it to this VPC.
+        4. Create a public route table and a private route table correspondingly.
+        5. Add public subnet association to your public route table, and add private one to your private route table.
+        6. Create a EC2 instance in your public subnet.
+        7. Edit Routes in your public Route table.(if destination is a local IP, route to local, if not, route to the IGW we just created.) (route tables only care about OUTBOUND traffic, remember.)
+    7. What if we want to connect to a EC2 instance residing within a private subnet?
+        1. Create a Bastion Hosts(which essentially is just a EC2 instance) in the public subnet.
+        2. This Bastion Host does have access to that particular EC2 instance in the private subnet, since it is inside the same VPC.
+        3. We first connect to that Bastion Host via SSH from the internet, and then Bastion Host will then SSH into the private EC2 instance.
+        4. The bastion is in public subnet which is then connected to all other private subnet.
+        5. Bastion Host security group MUST allow inbound from the internet on port 22 from restricted CIDR, for example the public CIDR of your corporation.
+        6. Security Group of the private EC2 instances must allow the security group of the Bastion Host, or the private IP of the Bastion host.
+
+    8. What if we want our private EC2 instance to INITIATE a connection TO the internet, instead of waiting for request FROM the internet(using Bastion Host)?
+        1. NAT Instance(outdated solution)
+        2. NAT Gateways(current solution)
+
+    9. NAT(Network Address Translation) Instance(just a manually created EC2 instance with some special config):
+        a. must be launched in a public subnet.
+        b. Must disable EC2 setting: Source / destination check
+        c. Must have Elastic IP attached to it.
+        d. Route Tables must be configured to route traffic from private subnets to the NAT Instance.
+        e. Private EC2(with its original source IP) -> NAT Instance(replace the source ip with its own source IP) -> IGW -> Internet. (VPC router is emitted here, it just implements the rules specified in router tables, both private ones and public ones.)
+        f. the internet can only see the source IP of the NAT instance, and will send return traffic to this IP.
+        g. once return traffic reaches NAT Instance, the NAT instance will then redirect the traffic to its original source IP, which is the private EC2 instance.
+        h. not HA / resilient out of the box. (you have to create ASG in multi-AZ mannually)
+        i. you have to manage Security Groups / rules yourself.
+
+    10. NAT Gateways:
+        a. 
