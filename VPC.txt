@@ -105,7 +105,7 @@ Internet Gateway(IGW): Allows resources(like EC2 instances) in a VPC connect to 
         4. Create a public route table and a private route table correspondingly.
         5. Add public subnet association to your public route table, and add private one to your private route table.
         6. Create a EC2 instance in your public subnet.
-        7. Edit Routes in your public Route table.(if destination is a local IP, route to local, if not, route to the IGW we just created.) (route tables only care about OUTBOUND traffic, remember.)
+        7. Edit Routes in your public Route table.(if destination is a local IP, route to local, if not, route to the IGW we just created.) 
     7. What if we want to connect to a EC2 instance residing within a private subnet?
         1. Create a Bastion Hosts(which essentially is just a EC2 instance) in the public subnet.
         2. This Bastion Host does have access to that particular EC2 instance in the private subnet, since it is inside the same VPC.
@@ -128,6 +128,65 @@ Internet Gateway(IGW): Allows resources(like EC2 instances) in a VPC connect to 
         g. once return traffic reaches NAT Instance, the NAT instance will then redirect the traffic to its original source IP, which is the private EC2 instance.
         h. not HA / resilient out of the box. (you have to create ASG in multi-AZ mannually)
         i. you have to manage Security Groups / rules yourself.
+        j. pay per hour for bandwidth, usage, and EC2 instance type and size.
 
     10. NAT Gateways:
-        a. 
+        a. AWS managed NAT, higher bandwidth, high availability, no administration.
+        b. pay per hour for usage and bandwidth
+        c. NATGW is created in a specific AZ, uses an Elastic IP
+        d. It can NOT be used by EC2 instance in the same subnet(only from other subnets.)
+        f. Requires an IGW(Private Subnet -> NATGW -> IGW)
+        g. 5 Gbps of bandwidth with auto scaling up to 100 Gbps.
+        h. No need to manage Security Groups by yourself.
+        i. It is only resilient within a single AZ. You must create multile NAT Gateways in multiple AZs for fault-tolerance. (A NAT Gateway is inherently resilient within the Availability Zone (AZ) it is deployed in. This means it is designed to handle failures within its AZ without disrupting service. However, if the entire AZ faces a disruption, the NAT Gateway within that AZ will also be affected.)
+
+
+Security Groups & NACLs:
+
+    1. Security Group -> instance / service.
+    2. NACL -> Subnet.
+    3. Incoming Request -> NACL inbound rules -> Subnet -> SG Inbound Rules -> EC2 Instance
+    4. SG is stateful, NACL is stateless. (if a inbound request is allowed, then the response traffic is automatically allowed by the SG, but not by the NACL. In other words, SG outbound rules won't apply in this case, but NACL outbound rules still do.)
+    5. Outgoing Request -> SG outbound rules -> Subnet -> NACL outbound rules -> IGW -> Internet. (same as incoming request, if the outgoing traffic is allowed, then the response of the outgoing request will still be checked by NACL inbound rules, but won't be by SG inbound rules.)
+
+NACL: Network Access Control List(NACL)
+    1. NACL are like a firewall which controls traffic from and to subnets.
+    2. One NACL per Subnet: Each subnet in a VPC must be associated with one (and only one) NACL, but a single NACL can be associated with multiple subnets.
+    3. You define NACL rules:
+        a. Rules have a number(1 - 32766), lower number -> higher precedence -> first to be evaluated by the NACL (so the order is determined by this number, not by manual drag.)
+        b. First rule match will drive the decision.
+        c. Example: 
+            1. #100 Allow 10.0.0.10/32
+            2. #200 DENY 10.0.0.10/32
+            The IP address will be allowed as 100 has a higher precedence over 200.
+        d. The last rule is an asterisk(*) and denies a request in case of no rule match.
+        e. AWS recommends adding rules by increment of 100.
+    4. Default NACL accepts everything inbound / outbound with the subnet it's associated with.
+    5. Newly created NACL will deny everything.
+    6. NACL are a great way of blocking specific IP address at SUBNET level.
+    7. Recommend: Do NOT modify the default NACL, instead,  create custom NACLs.
+
+    Ephemeral Ports:
+        1. For any two endpoints to establish a connection, they must use ports.
+        2. Clients connect to a defined port, and expect a response on an ephemeral port.
+        3. Different Operating Systems use different port ranges, examples:
+            a. IANA & MS Windows 10 -> 49152 - 65535
+            b. many Linux Kernels -> 32768 - 60999
+
+    NACL with Ephemeral Ports:
+        1. Imagine an web instance in a public subnet trying to connect to a DB instance in a private subnet.
+        2. The DB instance will take traffic from port 3306.
+        3. Hence, on the outbound rules of the NACL attached to the public subnet, we must allow Outbound TCP on port 3306, to DB subnet CIDR. (When you set an outbound rule on a port in the context of network firewalls or security groups, you're referring to the destination port, not the port on the source instance)
+        4. on the inbound rules of the NACL attached to the private subnet, we must allow inbound TCP on port 3306 From Web Subnet CIDR.
+        5. Here comes the tricky part, when the DB send back the response for the request, the original source port on the web instance is a random one (ephemeral port). How do we set inbound rules for the public NACL in this case?
+        6. private NACL must first allow Outbound TCP on port 1024-65535 to Web Subnet CIDR.
+        7. public NACL must allow Inbound TCP on port 1024-65535 From DB Subnet CIDR.
+
+VPC Peering
+    1. Privately connect two VPCs using AWS network.
+    2. Make them behave as if they were in the same network.
+    3. Must NOT have overlapping CIDRs.
+    4. VPC Peering connection is NOT transitive(must be established for each VPC that need to communicate with one another). A -> B -> C does not mean A -> C, we must also establish A -> C separately.
+    5. You must update route tables in each VPC's subnets to ensure EC2 instances can communicate with each other.
+    6. you can create VPC Peering connection between VPCs in different AWS accounts / regions.
+    7. You can reference a security group in a peered VPC(works across accounts - same region)
