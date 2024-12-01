@@ -190,3 +190,21 @@ VPC Peering
     5. You must update route tables in each VPC's subnets to ensure EC2 instances can communicate with each other.
     6. you can create VPC Peering connection between VPCs in different AWS accounts / regions.
     7. You can reference a security group in a peered VPC(works across accounts - same region)
+
+
+VPC Endpoint: Access AWS Service(S3, SNS...) outside of your VPC, using AWS internal network.(so no need to go out onto the public internet, hence the speed and safety)
+    1. Redundant, scale horizontally.
+    2. They remove the need for IGW, NATGW, .. to access AWS services.
+    3. Two Types:
+        a. Interface Endpoint(PrivateLink)
+            1. Provision an ENI(private ip address) as an entry point(must attach Security Group)
+            2. Supports most AWS services.
+            3. cost per hour + cost per GB data processed.
+        b. Gateway Endpoint
+            1. Provision a gateway and must be used as a target in a route table(does not use security groups)
+            2. Supports both S3 and DynamoDB
+            3. Free
+
+     For access to S3 and DynamoDB, Gateway Endpoint is USUALLY preferred as its free and easier to set up.
+
+     Interface Endpoint is preferred when connecting to on-site / another vpc / or a different region.
