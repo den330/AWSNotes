@@ -240,6 +240,43 @@ VPC Flow Logs: Capture information about IP traffic going into your interfaces.
         2. VPC Flow Logs -> CloudWatch Logs - (with Metric Filter like SSH, RDP...) -> CW Alarm - (Alert) -> Amazon SNS
         3. VPC Flow Logs -> S3 Bucket -> Amazon Athena(Analyze) -> Amazon QuickSight(Visualize)
 
+    (GPT: AWS Athena is not a database by itself. Instead, it is a query service that allows you to perform SQL queries directly on data stored in Amazon S3. Athena lets you analyze your data in S3 using SQL without having to first load it into a separate database. It acts as a way to execute queries and retrieve results from the data stored in S3, but it does not store data itself. The actual data remains in your S3 buckets, and Athena integrates with the AWS Glue Data Catalog to access the metadata (schema and structure) about your files stored in S3, which allows it to interpret and query the data as if it were in a traditional database.)
+
+
+Site-to-Site VPN: encrypted, on the public internet, typically establish connection between aws instances with corporate data centers.
+
+    1. Virtual Priavte Gateway
+        a. VPN concentrator on the AWS side of the VPN connection
+        b. created and attached to the VPC from which you want to create the site-to-site VPN connection.
+        c. Possibility to customize the ASN(Autonomous System Number)
+
+    2. Customer Gateway(CGW)
+        a. Software application or physical device on customer side of the VPN connection
+        b. It must have a public internet-routable IP address unless it's behind NAT; in that case, you would use the public IP address of the NAT device.
+    
+    
+    Instances -> Virtual Private Gateway - (Site-to-Site VPN) -> Customer Gateway(Public IP) -> Corporate Data Center(Private IP)
+
+    Customer Gateway Device(On-premises)
+        1. What IP address to use?
+            a. Public Internet-routable IP address for your customer Gateway device
+            b. If it's behind a NAT device that's enabled for NAT traversal(NAT-T), use the public IP address of the NAT device.
+
+        2. Important Step: enable Route Propagation for the Virtual Private Gateway in the route table that is associated with your subnets.
+
+        3. If you need to ping your EC2 instances from on-premises, make sure you add the ICMP protocol on the inbound of your security groups.
+
+
+    AWS VPN CloudHub: provide secure communication between multiple sites, if you have multiple VPN connections.
+
+        1. Low-cost hub-and-spoke model for primary or secondary network connectivity between different locations(VPN only)
+
+        2. It's a VPN connection so it goes over the public internet.
+
+        3. To set it up, connect multiple VPN connections on the same VGW, setup dynamic routing and configure route tables.
+
+
+
 
 
 
