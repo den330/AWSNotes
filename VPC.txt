@@ -326,5 +326,26 @@ Direct Connect(DX)
             b. See picture: https://drive.google.com/file/d/1rLxrxVD4un4vQC0QdXcNeQ0-fi5ELI6S/view?usp=sharing
 
 
+Transit Gateway
+    (See picture: https://drive.google.com/file/d/1k-G5z4hmRfJHX89_ByRf6JuPWAgO05B5/view?usp=sharing)
+    
+    1. Have TRANSITIVE peering between thousands of VPC and on-premises, hub-and-spoke(star) connection.
+    2. Regional resource, can work cross-region
+    3. Share cross-account using Resource Access Manager(RAM)
+    4. Can peer Transit Gateways across regions.
+    5. Route Table for transit gateway: limit which VPC can talk with other VPC.
+    6. Works with Direct Connect Gateway, VPN connections.
+    7. It is the ONLY service in AWS that supports IP Multicast
 
+    Site-To-Site VPN ECMP
+    (see picture: https://drive.google.com/file/d/1jaPtkU4FRi9YqfuIfiu6ZOkEJt3ptvN0/view?usp=sharing)
+    
+    1. ECMP: Equal-cost multi-path routing.
+    2. Routing strategy to allow to forward a packet over multiple best path.
+    3. Use case: 
+        a. create multiple Site-to-Site VPN connections to increase the bandwidth of your connection to AWS. 
 
+    Share Direct Connect between multiple accounts
+        1. see picture: https://drive.google.com/file/d/1C8_I8_y9WYJluwW7QFYgHa1Q2HMWZzVU/view?usp=sharing
+
+    
