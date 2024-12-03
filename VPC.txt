@@ -277,8 +277,53 @@ Site-to-Site VPN: encrypted, on the public internet, typically establish connect
 
 
 
+Direct Connect(DX)
+
+    1. Provides a dedicated private connection from a remote network to your VPC.
+    2. Dedicated connection must be setup between your DC and AWS Direct Connect Locations.
+    3. You need to setup a Virtual Private Gateway(the same one as in Site to Site VPN) on your VPC.
+    4. Access public resources(like S3) and private (like EC2) on same connection.
+    5. Use Cases:
+        a. Increase bandwidth throughput - working with large data sets - lower cost
+        b. More consistent network experience - applications using real-time data feeds.
+        c. Hybrid Environment (on prem + cloud)
+        d. Supports both IPv4, and IPv6
+    6. See picture(pay attention to line color): https://drive.google.com/file/d/1DVptBpdvw-AcZlYgEXkmeQ-oCKCs7jVM/view?usp=sharing
 
 
+    Direct Connect Gateway
+
+        1. If you want to setup a Direct Connect to one or more VPC in many different regions(same account), you must use a Direct Connect Gateway.
+        2. See Picture: https://drive.google.com/file/d/1rKGyhwnPbReR6FNjaa4gsCYiYRW72YMg/view?usp=sharing
+
+    
+    Connection Types
+        
+        1. Dedicated Connections: 1 Gbps, 10 Gbps and 100 Gbps capacity.
+            a. Physical ethernet port at Direct Connect Location dedicated to a customer
+            b. Request made to AWS first, then completed by AWS Direct Connect Partners.
+
+        2. Hosted Connections: 50 Mbps, 500 Mbps, to 10 Gbps
+            a. Connection requests are made via AWS Direct Connect Partners.
+            b. Capacity can be added or removed on demand.
+            c. 1,2,5,10 Gbps available at select AWS Direct Connect Partners.
+
+        3. Lead times are often longer than 1 month to establish a new connection. (so if you need to connect in a week, DX is NOT a solution)
+    
+    Encryption
+        
+        1. Data in transit(from customer DC to Direct Connect Location) is NOT encrypted but is private.
+        2. AWS Direct Connect + VPN provides an IPsec-encrypted private connection.
+        3. Good for an extra level of security, but slightly more complex to put in place.
+
+    Resiliency
+
+        1. High Resiliency for Critical Workloads. (One Connection at multiple locations)
+        2. Maximum Resiliency for Critical Workloads.(separate connections terminating on separate devices in more than one locations)
+        3. See picture: https://drive.google.com/file/d/1uACodqk36-iSbmns8ngrdNMf23SO4uwD/view?usp=sharing
+        4. DX + Site-to-Site VPN
+            a. In case Direct Connect fails, you can set up a backup Direct connection(expensive), or a Site-to-Site VPN connection.
+            b. See picture: https://drive.google.com/file/d/1rLxrxVD4un4vQC0QdXcNeQ0-fi5ELI6S/view?usp=sharing
 
 
 
