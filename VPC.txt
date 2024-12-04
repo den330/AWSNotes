@@ -413,3 +413,87 @@ Egress-Only Internet Gateway
             
             2. If you want the instance to be able to initiate outbound connections but not accept unsolicited inbound connections, you could use an egress-only internet gateway, as discussed earlier. This setup allows the instance to communicate with the internet while preventing inbound connections initiated from the internet.
 
+VPC Section Summary: https://www.udemy.com/course/aws-certified-solutions-architect-associate-saa-c03/learn/lecture/13528564#questions
+
+
+Networking Costs in AWS per GB
+
+    1. Traffic going into your EC2 instance -> Free
+    2. Any traffic between two EC2 instances that are located in the SAME AZ, using private IP => Free
+    3. Any traffic between two EC2 instances that are located in the DIFFERENT AZ within the same region, using private IP => $0.01
+    4. if public / elastic IP is used for EC2-to-EC2 traffic => $0.02
+    5. Inter-region traffic => $0.02
+
+    Takeaway:
+        1. Use private ip instead of public ip for savings and performance.
+        2. use same AZ for maximum savings(at the cost of high availability)
+
+    
+    Minimizing egress traffic network cost.
+        1. Egress traffic: outbound traffic(from AWS to outside)
+        2. Ingress traffic: inbound traffic(from outside to AWS) => Free.
+        3. Try to keep as much internet traffic within AWS to minimize costs.
+            
+            a. Expensive: DB within VPC -> Application located at Corporate Data Center -> Query Result 
+
+            b. Cheap: DB within VPC -> Application in the same VPC -> Query Result.
+
+            c. Free: DB within VPC -> Application in the same AZ -> Query Result.
+
+        4. Direct Connect location that are co-located in the same AWS region result in lower cost for egress network (Data transfer rates are typically lower when both the AWS resources and the Direct Connect location are in the same region.)
+
+    S3 Data Transfer Pricing - Analysis for USA
+
+        1. S3 ingress => Free
+        2. S3 to internet: $0.09 per GB
+        3. S3 Transfer Acceleration:
+            a. Faster transfer times(50 to 500% better)
+            b. Additional cost on top of Data Transfer Pricing: +$0.04 to $0.08 per GB.
+
+        4. S3 to CloudFront => Free, CloudFront to Internet: $0.085 per GB (slightly cheaper than S3)
+            a. Caching capability (lower latency)
+            b. Reduce costs associated with S3 request pricing(7x cheaper with CloudFront)
+                Explain: when someone makes a request to S3, you will have to pay for that request, but if that request can be handled by CloudFront, it will be much cheaper.
+
+        5. S3 Cross Region Replication: $0.02 per GB
+
+    
+    Pricing: NAT Gateway vs Gateway VPC Endpoint
+        
+        1. See picture: https://drive.google.com/file/d/1SQBSd7_j13RCWOF2RHK4rd3oCMkN1NQX/view?usp=sharing
+
+    
+Network Protection on AWS
+    
+    1. To protect network on AWS, we've seen
+        a. Network Access Control Lists(NACL)
+        b. Amazon VPC security groups
+        c. AWS WAF(protect against malicious requests)
+        d. AWS Shield & AWS Shield Advanced (protect against DDOS)
+        e. AWS Firewall Manager (to manage above across accounts)
+
+    2. But what if we want to protect our ENTIRE VPC?
+        a. AWS Network Firewall
+            1. From Layer 3 to Layer 7 protection
+            2. Any direction, you can inspect
+                a. VPC to VPC traffic
+                b. Outbound to internet
+                c. Inbound from internet
+                d. To / from Direct Connect & Site-to-Site VPN
+
+            3. Internally, the AWS Network Firewall uses the AWS Gateway Load Balancer
+            4. Rules can be centrally managed cross-account by AWS Firewall Manager to apply to many VPCs.
+
+            Fine Grained Controls
+                1. Supports 1000s or rules
+                    a. Protocol - example: block the SMB protocol for outbound communications.
+                    b. Stateful domain list rule groups: only allow outbound traffic to *.mycorp.com or third-party software repo.
+                    c. General pattern matching using regex.
+                2. Traffic filtering: Allow, drop, or alert for the traffic that matches the rules.
+                3. Active flow inspection to protect against network threat with intrusion-prevention capabilities(like Gateway Load Balancer, but all managed by AWS)
+                4. Send logs of rule matches to Amazon S3, CloudWatch Logs, Kinesis Data Firehose.
+            
+            
+    
+
+    
