@@ -348,4 +348,68 @@ Transit Gateway
     Share Direct Connect between multiple accounts
         1. see picture: https://drive.google.com/file/d/1C8_I8_y9WYJluwW7QFYgHa1Q2HMWZzVU/view?usp=sharing
 
+
+VPC Traffic Mirroring
+    (see picture: https://drive.google.com/file/d/155L6jj32q-C7JTir3Gf1DjGFJnkZCEF1/view?usp=sharing)
+    1. Allows you to capture and inspect network traffic in your VPC.
+    2. Route the Traffic to security appliances that you manage.
+    3. Capture the traffic
+        a. From(Source) - ENIs
+        b. To(Target) - an ENI or a Network Load Balancer.
+    4. Capture all packets or capture the packets of your interest(optionally, truncate packets)
+    5. Use cases: content inspection, threat monitoring, troubleshooting.
+
+    (GPT Note: VPC Traffic Mirroring is entirely within the Virtual Private Cloud (VPC). It operates by copying network traffic from one or more source elastic network interfaces (ENIs) within the VPC and then forwarding that copy to a specified target ENI or a Network Load Balancer within the same VPC or different VPC(thru vpc peering). This allows you to analyze the traffic without impacting the original traffic flow.)
+
+    VPC Traffic Mirroring allows you to capture and inspect network traffic including packet payloads, headers, and metadata as they travel through your VPC. The type of content it can inspect includes:
+
+        Headers: Information about the source and destination of packets, protocol used, port numbers, and other transmission-related metadata.
+        
+        Payloads: The actual data being transmitted in the packets, which can include anything from plain text to binary data, depending on the application and protocol being used.
     
+    Regarding the ability to inspect encrypted content, this is more complex. VPC Traffic Mirroring captures and mirrors the traffic as it appears on the network. If this traffic is encrypted, as is common with HTTPS, SSH, and other secure protocols, the mirrored traffic will also be encrypted. This means that without the appropriate decryption keys or mechanisms, the encrypted content itself cannot be inspected directly through traffic mirroring.
+
+
+IPv6 for VPC
+
+    1. IPv4 will be soon exhausted, and IPv6 will be its successor.
+    2. It's designed to provide 3.4 * 10 ^ 38 unique IP addresses.
+    3. Every IPv6 address in AWS is PUBLIC and Internet-routable(no private range)
+    4. Format: x.x.x.x.x.x.x.x(x is hexademical, range can be from 0000 to ffff)
+    5. Examples: 
+        a. 2001:db8:3333:4444:5555:6666:7777:8888
+        b. ::   (means all 8 segments are zero)
+        c. 2001:db8::  (means the last 6 segments are zero)
+        d. 2001:db8::1234:5678  (the middle 4 segments are zero)
+
+    6. IPv4 cannot be disabled for your VPC and subnets. You can enable IPv6(they're public IP addresses)
+
+    7. Your EC2 instances will get at least a private internal IPv4 and a public IPv6.
+    8. They can communicate using either IPv4 or IPv6 to the internet though an Internet Gateway.
+    9. a single Elastic Network Interface (ENI) in an AWS VPC can be configured to contain both IPv4 and IPv6 addresses. This capability supports dual-stack configurations, which are crucial for transitioning environments that need to support both IPv4 and IPv6 traffic simultaneously
+
+    Toubleshooting:
+        
+        1. IPv4 cannot be disabled for your VPC and subnets.
+        2. Hence, if you cannot launch an EC2 instance in your subnet:
+            a. It's not because it cannot acquire an IPv6(the space is very large)
+            b. It's because there are no available IPv4 in your subnet.
+        3. Solution: create a new IPv4 CIDR in your subnet.
+
+Egress-Only Internet Gateway
+    (see picture: https://drive.google.com/file/d/1w6QRu0A7ADnKNLFDnhbFmNa8ctqjzDaA/view?usp=sharing)
+    1. Used for IPv6 only.
+    2. (similiar to a NAT Gateways but for IPv6)
+    3. Allows instances in your VPC outbound connections over IPv6 while preventing the internet to initiate an IPv6 connection TO your instance. (Respond to the request initiated by the instance is allowed.)
+    4. You must update the Route Tables.
+    5. IPv6 Routing: https://drive.google.com/file/d/1cwnR1vHLKL4lbyxYZjUqSJsu9En6B7tk/view?usp=sharing
+
+    GPT Note: 
+        Question: 
+            when you have a EC2 instance with IPv6 address, placed in a private subnet, how would that work out? as we all know all IPv6 addresses are public and should be routable from Internet
+        
+        Answer:
+            1. Even if an instance has a public IPv6 address, it won't be able to communicate with the internet unless the subnet's route table contains a route to an internet gateway or an egress-only internet gateway. For a truly private setup with IPv6, you would omit any route to an internet gateway for IPv6 traffic in the route table.
+            
+            2. If you want the instance to be able to initiate outbound connections but not accept unsolicited inbound connections, you could use an egress-only internet gateway, as discussed earlier. This setup allows the instance to communicate with the internet while preventing inbound connections initiated from the internet.
+
