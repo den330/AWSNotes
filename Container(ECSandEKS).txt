@@ -192,3 +192,69 @@ ECR (Elastic Container Registry)
     5. Supports image vulnerability scanning, versioning, iamges, tags, image life cycle
 
 
+
+Amazon EKS(Amazon Elastic Kubernetes Service)
+
+    1. A way to launch managed Kubernetes clusters on AWS.
+    2. Kubernetes is an open-source system for automatic deployment, scaling and management of containerized(usually Docker) application.
+    3. It's an alternative to ECS, similiar goal but different API
+    4. EKS supports EC2 if you want to deploy worker nodes or Fargate to deploy serverless containers.
+    5. Use case: if your company if already using Kubernetes on-premises or in another cloud, and wants to migrate to AWS using Kubernetes.
+    6. Kubernetes is cloud-agnostic(can be used in any cloud - Azure, GCP...)
+
+    Node Types:
+
+        1. Managed Node Groups
+            a. Creates and manages Node(EC2 instance) for you.
+            b. Nodes are part of an ASG managed by EKS.
+            c. Supports On-Demand or Spot Instances.
+
+        2. Self-Managed Nodes
+            a. Nodes created by you and registered to the EKS cluster and managed by an ASG.
+            b. You can use prebuilt AMI - Amazon EKS Optimized AMI
+            c. Supports On-Demand or Spot Instances.
+
+        3. AWS Fargate
+            a. No maintenance required; no nodes managed.
+
+    See pic: https://drive.google.com/file/d/1gAjzYl7n9FhjUATZzXvVkljES0MWab7X/view?usp=sharing
+            
+    Data Volumes
+
+        1. Need to specify StorageClass manifest on your EKS cluster.
+        2. Leverages a Container Storage Interface(CSI) compliant driver.
+        3. Support for:
+            a. Amazon EBS
+            b. Amazon EFS(the only type of storage class that works with Fargate)
+            c. Amazon FSx for Lustre
+            d. Amazon FSx for NetApp ONTAP
+
+
+ECS vs EKS: https://drive.google.com/file/d/14btqSS5a9ifxb144UN-viVj7W4bzWypy/view?usp=sharing
+
+
+AWS App Runner
+
+    1. Fully managed service that makes it easy to deploy web applications and APIs at scale.
+    2. No infrastructure experience required.
+    3. Start with your source code or container image.
+    4. Automatically builds and deploy the web app.
+    5. Automatic scaling, highly available, load balancer, encryption.
+    6. VPC access support.
+    7. Connect to database, cache, and message queue services.
+    8. Use cases: web apps, APIs, microservices, rapid production deployments.
+    9. See pic: https://drive.google.com/file/d/1AdjM7daUSp1Y53QE9sp92Km-XrkK_Y0s/view?usp=sharing
+
+AWS App2Container(A2C)
+
+    1. CLI tool for migrating and modernizing Java and .NET web apps into Docker Containers.
+    2. Lift-and-shift your apps running in on-premises bare metal, virtual machines, or in any Cloud to AWS
+    3. Accelerate modernization, no code changes, migrate legacy apps...
+    4. Generate CloudFormation templates(compute, network)
+    5. Register generated Docker containers to ECR.
+    6. Deploy to ECS, EKS, or App Runner.
+    7. Supports pre-built CI/CD pipelines.
+    8. See pic: https://drive.google.com/file/d/1NcRExByD3yuAH38zjnC6eGHyqTyFwmbr/view?usp=sharing
+
+
+    

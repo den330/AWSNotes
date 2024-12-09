@@ -1,0 +1,55 @@
+1. Any event that has a negative impact on a company's business continuity or finances is a disaster.
+
+2. Disaster Recovery(DR): Preparing for and recovering from a disaster.
+
+3. Type of DR:
+    
+    a. On-premise -> On-premise: traditional DR, and costly.
+        This traditional approach involves duplicating the IT infrastructure in a secondary physical site owned by the company. While it gives full control over the recovery process, it is often more costly due to the need for additional hardware, maintenance, and real estate.
+    
+    b. On-premise -> AWS Cloud: hybrid recovery.
+        Hybrid recovery involves replicating and backing up data from on-premise servers to a cloud environment, like AWS. This strategy uses cloud flexibility and scalability to ensure faster recovery and lower costs compared to fully on-premise solutions.
+    
+    c. AWS Cloud Region A => AWS Cloud Region B
+        This strategy involves replicating data and applications across different AWS regions. It enhances resilience by leveraging geographic diversity, ensuring that even if one region is compromised, another can take over without significant downtime.
+
+        (While Multi-AZ can mitigate issues like hardware failures or localized power outages, it might not be sufficient for regional disasters such as major natural disasters or widespread network outages.)
+
+4. Two relevant terms:
+    
+    a. RPO: Recovery Point Objective
+        
+        RPO refers to the maximum acceptable amount of data loss measured in time. It represents the maximum age of the files that must be recovered from backup storage for normal operations to resume after a disaster. Essentially, it answers the question: "How much data can we afford to lose?"
+
+        A lower RPO indicates a more frequent backup schedule. For instance, an RPO of one hour means that data should be backed up at least every hour. This metric is crucial for determining the data backup frequency.
+    
+    b. RTO: Recovery Time Objective
+        
+        RTO is the maximum acceptable length of time that a service or application can be down after a disaster before there is significant harm to the business. It defines the target duration for restoring IT and business functions after a disruption.
+
+        A shorter RTO requires more robust disaster recovery infrastructure and quicker failover mechanisms. It is a critical consideration for business continuity planning as it impacts the level of service availability expected in disaster scenarios.
+
+5. DR Strategies(from long RTO to short RTO):
+    
+    a. Backup and Restore(also high RPO)
+        This basic DR strategy involves regularly backing up data and storing it off-site or in the cloud. In the event of a disaster, the data is restored to the original site or to new hardware.
+        (see picture: https://drive.google.com/file/d/1o0wXEG6gPW077b1qkO5xNaAHH8Wru3Kv/view?usp=sharing)
+    
+    b. Pilot Light
+        In this approach, a minimal version of an environment is always running in the cloud. The core elements necessary to run the application, like data and a few critical services, are replicated. This allows for a faster scale-up to a full environment in case of a disaster.
+        (see picture: https://drive.google.com/file/d/1kzpdS9RlNYsGXugHm7V_HdRddNUxh2vy/view?usp=sharing)
+
+    c. Warm Standby
+        A more robust version of the pilot light, where a full system environment runs at a reduced capacity in standby mode. This environment can quickly be brought to full operational capacity when needed.
+        (see picture: https://drive.google.com/file/d/1CUHIL0O3coQIt3oRcvOUO1BnJ_LgGNul/view?usp=sharing)
+    
+    d. Hot Site / Multi Site Approach
+        This is the most advanced and expensive DR strategy. It involves maintaining one or more fully operational duplicate sites, which can take over immediately if the primary site fails. Often, data is mirrored in real-time between sites.
+    
+        1. Hybrid: (see picture: https://drive.google.com/file/d/1R-S0icVSdvucYgzQYhYjdb5vlDxyMnNS/view?usp=sharing)
+
+        2. All AWS Cloud: (see picture: https://drive.google.com/file/d/1vcECLB5POmjtwuEmdCco3hCADBeQ-0Ze/view?usp=sharing)
+
+6. DR Tips - (See picture: https://drive.google.com/file/d/1Oaw7jsxJVBf-NiUd9NlpyRjaikU0x164/view?usp=sharing)
+
+7. Database Migration Service(DMS)

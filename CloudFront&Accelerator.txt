@@ -4,7 +4,7 @@
 
 3. Geo Restriction
    a. Allowlist: Allow users to access your content ONLY if they are in one of the countries on the list of approved countries.
-   b. Blocklist: Blocl users to access your content if they are in one of the countries on the list of banned countries.
+   b. Blocklist: Block users to access your content if they are in one of the countries on the list of banned countries.
    c. You can choose either an allowlist or a blocklist for your geo-restriction strategy, but NOT BOTH simultaneously for a single distribution.
    d. use case: copyright laws
 

@@ -13,7 +13,7 @@
 5. Name Servers: 1. root name servers(deciding between .com, .net, .org....)
               2. TLD Name Servers(deciding google.com or example.com or .....)
               3. Authoritative Name Servers(the one contains the zone file, which contains DNS records that helps mapping your url into the corresponding ip, that result will go back to your local dns server, and cached there)
-              4. local DNS server(Caching DNS Resolvers): Local DNS servers cache the DNS query results for a period determined by the TTL (Time to Live) associated with each DNS record
+              4. local DNS server(Caching DNS Resolvers): Local DNS servers cache the DNS query results for a period determined by the TTL (Time to Live) associated with each DNS record (provided by your ISP, which can determine if your request type would be A or AAAA)
 Flow after url entered: 4, or 4 -> 1 -> 2 -> 3
 
 6. Route 53: Authoritative Name Server(Authoritative DNS), these servers hold the zone files for their specific domains and answer queries based on the records in these files.
