@@ -4,7 +4,7 @@ Task Def: "will need this container for this, that container for that"
 
 (Task Def consists of multiple container def and some Task level info, like Task Role)
 
-Service: "Will arrange this amount of instances for this task, that amount of instances for that task" (how many copies of this / that tasks need to be run)
+Service: "Will arrange this amount of instances(task instances) for this task, that amount of instances(task instances) for that task" (how many copies of this / that tasks need to be run)
 
 Task Definitions can be thought of as the "what" — what the configuration of the application's containers should be.
 
@@ -83,9 +83,11 @@ When we have multiple tasks running on multiple instances, and we want to expose
     1. ALB supported and works for most use cases.
     2. NLB recommended only for high throughput / high performance use cases, or to pair it with AWS Private Link.
 
+    (GPT: In Amazon ECS when using the Application Load Balancer (ALB), the ECS service does handle the registration and deregistration of task instances with the ALB's target group, but it's NOT the EC2 instances themselves that are registered directly. Instead, it is the individual task instances (with one or more containers in it) that are registered as targets.)
+
 
 ECS Data Persistence: Data Volumes(EFS)
-    1. If you have a cluster container both launch types.
+    1. If you have a cluster containing both launch types.
     2. You can mount EFS file system onto ECS tasks.
     3. Its a network file system that works for both EC2 and Fargate launch types.
     4. We can mount it directly on our tasks so that tasks running in different AZ will share the same data in the EFS file system. (EFS is a managed NFS (network file system) that can be mounted directly onto ECS tasks. When setting up your ECS task definitions, you can specify the EFS filesystem as a volume, and then mount this volume in the container definitions where you need persistent storage.)

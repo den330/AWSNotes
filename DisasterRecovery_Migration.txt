@@ -52,4 +52,107 @@
 
 6. DR Tips - (See picture: https://drive.google.com/file/d/1Oaw7jsxJVBf-NiUd9NlpyRjaikU0x164/view?usp=sharing)
 
-7. Database Migration Service(DMS)
+
+
+
+
+Database Migration Service(DMS)
+
+    1. Quickly and securely migrate databases to AWS, resilient, self healing.
+    2. The source database remains available during the migration.
+    3. Supports:
+        a. Homogeneous migrations: ex Oracle to Oracle
+        b. Heterogeneous migrations: ex Microsft SQL Server to Aurora
+    
+    4. Continuous Data Replication using CDC.
+    5. You must create an EC2 instance to perform the replication task. (picture: https://drive.google.com/file/d/1-4k6aICPM8FR3ihDQ7W2KODY49tDrb23/view?usp=sharing)
+    
+    
+    What if the source db and target db do NOT have the same engine?
+
+    AWS Schema Conversion Tool(SCT)
+
+        1. Convert your db's schema from one engine to another.
+            Example OLTP: (SQL Server or Oracle) to MySQL, PostgreSQL, Aurora.
+            Example OLAP: (Teradata or Oracle) to Amazon Redshift.
+
+        2. You do NOT need to use SCT if you are migrating the same DB engine.
+            Ex: On-premises PostreSQL => RDS PostgreSQL (since the DB engine is still PostgreSQL, with RDS being just the platform)
+
+    
+    Continuous Replication: (picture: https://drive.google.com/file/d/1PAUm4lUT7XoxK2gjydp5OAgj-Z06dUp7/view?usp=sharing)
+
+    
+    Multi-AZ Deployment(picture: https://drive.google.com/file/d/17H0iU5h2nz-0eQCOgifgUqKnTYE9CeEe/view?usp=sharing)
+        
+        1. When Multi-AZ enabled, DMS provisions and maintains a synchronously stand replica in a different AZ.
+
+        2. Advantages:
+            a. Provides Data Redundancy.
+            b. Eliminates I/O freezes.
+            c. Minimizes latency spikes.
+
+RDS & Aurora MySQL Migrations(picture: https://drive.google.com/file/d/1kuFXQKAb99W0HY2gEbbCRTUxk6iEWYLF/view?usp=sharing)
+
+    1. RDS MySQL to Aurora MySQL
+        
+        Option 1: DB Snapshots from RDS MySQL restored as MySQL Aurora DB
+        
+        Option 2: Create an Aurora Read Replica from your RDS MySQL, and when the replication lag is 0, promote it as its own DB cluster(can take time and cost money)
+
+    2. External MySQL to Aurora MySQL
+
+        Option 1:
+            1. use Percona XtraBackup to create a file backup in Amazon S3
+            2. Create an Aurora MySQL DB from Amazon S3
+
+        Option 2:
+            1. Create an Aurora MySQL DB
+            2. Use the mysqldump utility to migrate MySQL into Aurora(slower than the S3 method above)
+
+        Option 3: Use DMS if both databases are up and running.
+
+RDS & Aurora PostgreSQL Migrations(picture: https://drive.google.com/file/d/1IHEbofgXAR_fihRrV9Uv0COGAzulKSzb/view?usp=sharing)
+    
+
+On-Premise Strategy with AWS(use some AWS services on-premise) (picture: https://drive.google.com/file/d/15gl65YanElAVbkYGtZwyILQy_WVCcytG/view?usp=sharing)
+
+
+AWS Backup
+    
+    Picture: https://drive.google.com/file/d/1ZEM-GKRRm77hqRJOekHm7-shWnmyvKzv/view?usp=sharing
+    
+    1. Fully managed service
+    2. Centrally manage and automate backups across AWS services.
+    3. No need to create a custom script and manual processes.
+    4. Supported Services:
+        a. Amazon EC2 / EBS
+        b. S3 
+        c. RDS / Aurora / DynamoDB
+        d. DocumentDB / Neptune
+        e. EFS / FSx(Lustre & Windows File Server)
+        f. AWS Storage Gateway(Volume Gateway)
+    5. Supports cross-region backups.
+    6. Supports cross-account backups.
+    7. Supports PITR for supported services.
+    8. On-Demand and Scheduled backups.
+    9. Tag-based backup policies.
+    10. You create backup policies known as Backup Plans.
+        a. Backup frequency(every 12 hours, daily, weekly, monthly, cron expression)
+        b. Back window
+        c. Transition to Cold Storage(Never, Days, Weeks, Months, Years)
+        d. Retention Period(Always, Days, Weeks, Months, Years)
+
+    AWS Backup Vault Lock
+        
+        1. Enforce a WORM(Write Once Read Many) state for all the backups that you store in your AWS Backup Vault. (deletion prevention)
+
+        2. Additional layer of defense to protect your backups against:
+            a. Inadvertent or malicious delete operations.
+            b. Updates that shorten or alter retention periods.
+
+        3. Even the root user cannot delete backups when enabled.
+
+Application Migration Service(MGN)
+
+    1. 
