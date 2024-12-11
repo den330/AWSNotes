@@ -153,6 +153,30 @@ AWS Backup
 
         3. Even the root user cannot delete backups when enabled.
 
+Application Discovery Service
+
+    1. Plan migration projects by gathering information about on-premises data centers.
+    2. Server utilization data and dependency mapping are important for migrations.
+
+    Agentless Discovery(AWS Agentless Discovery Connector)
+        • VM inventory, config, and performance history such as CPU, memory, and disk usage.
+    
+    Agent-based Discovery(AWS Application Discovery Agent)
+        • System config, system performance, running processes, and details of the network connections between systems.
+
+    Resulting data can be viewed within AWS Migration Hub
+
 Application Migration Service(MGN)
 
-    1. 
+    • Lift-and-shift(rehost) solution which simplify migrating applications to AWS.
+    • Converts your physical, virtual, and cloud-based servers to run natively on AWS
+    • Supports a wide range of platforms, OS, and DB.
+    • Minimal downtime, reduced costs.
+    • Picture: https://drive.google.com/file/d/1Y-CSKNLRKXNCc7AeiuQtYGzjw44FOjkD/view?usp=sharing
+
+
+Summary with an example regarding transferring large amount of data into AWS: https://drive.google.com/file/d/1xUdQaPozwUzxzljbyQ0us9DLpd4es6iN/view?usp=sharing
+
+
+VMware Cloud on AWS: https://drive.google.com/file/d/1xLZPg6egn6EfJNW0eP_hU5nELSN8Qv4C/view?usp=sharing
+
