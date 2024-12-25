@@ -1,4 +1,41 @@
-1. Serverless is a new paradigm in which developers don't have to manage servers anymore.
-2. They just deploy code.
-3. They just deploy functions.
-4. It does NOT mean there are no servers, it just means you don't have to manage them.
+Serverless
+
+• Serverless is a new paradigm in which developers don't have to manage servers anymore.
+• They just deploy code.
+• They just deploy functions.
+• It does NOT mean there are no servers, it just means you don't have to manage them.
+• It means FaaS(function as service), INITIALLY, but now it also includes anything that's managed(databases, messaging, storage, etc)
+• See picture: https://drive.google.com/file/d/17oSQzZc9Jxblr_YsgvsJZVRWrGouuDQm/view?usp=sharing
+
+
+Lambda
+
+    1. Compare:
+        a. EC2
+            • Virtual Servers in Cloud
+            • Limited by RAM and CPU
+            • Continously running
+            • Scaling can be done thru intervention to add / remove servers
+
+        b. Lambda
+            • Virtual Functions(no servers to manage)
+            • Limited by time(short executions)
+            • Run on-demand.
+            • Scaling is automated.
+
+Lambda Limits - per region
+
+    • Execution:
+        
+        • Memory Allocation: 128 MB - 10 GB (1MB increments)
+        • Maximum execution time: 15 mins
+        • Env Variables(4 kb)
+        • Disk Capacity in the "function container" (in /tmp): 512 MB to 10GB
+        • Concurrency executions: 1000(can be increased)
+
+    • Deployment:
+        
+        • Lambda function deployment size(compressed.zip): 50 MB
+        • Size of uncompressed deployment(code + dependencies): 250 MB
+        • Can use the /tmp directory to load other files at startup.
+        • Size of env variables: 4 kb
