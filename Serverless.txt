@@ -125,3 +125,26 @@ DynamoDB Basic
             • No capacity planning needed.
             • Pay for what you use, more expensive($$$)
             • Great for unpredictable workloads, steep sudden spikes.
+
+DynamoDB Advanced Features:
+
+    • DynamoDB Accelerator(DAX)
+        • Fully-managed, highly available, seamless in-memory cache for DynamoDB
+        • Help solve read congestion by caching
+        • Microseconds latency for cached data
+        • Does NOT require application logic modification(compatiable with existing DynamoDB APIs)
+        • 5 minutes TTL for cache(default)
+        • https://drive.google.com/file/d/1F39ChM-6UB9XWgfv3h3rmxfkz4UbyNtm/view?usp=sharing
+        • DAX vs ElastiCache (https://drive.google.com/file/d/1P7LLZAAhLLQwrkqc2YxuwcwxbH1cIWha/view?usp=sharing)
+
+    • Stream Processing
+        • https://drive.google.com/file/d/1sM_S7kSDMCZJpLhDCdBHsHJz5rChzUXo/view?usp=sharing
+        • https://drive.google.com/file/d/1GtXw7iQtiaLBD6Q_Ps-0VrFyzP37-L57/view?usp=sharing
+
+    • Global Tables(https://drive.google.com/file/d/1tjiWB9BhyrW24tgOXk4TXQy4y3UjteuQ/view?usp=sharing)
+    
+    • Time To Live(TTL) (https://drive.google.com/file/d/1HgAfSkBrJHJceX_H4acR8KLAhW8QH0Ue/view?usp=sharing)
+
+    • Backups for disaster recovery(https://drive.google.com/file/d/1DTJfkwBHXMxEnHvkO9hnp1E7evHeowVC/view?usp=sharing)
+
+    • Integration with S3(https://drive.google.com/file/d/1LZ1g4Dux_1VS5qQf1TiCoy5_pfZcNkPj/view?usp=sharing)
