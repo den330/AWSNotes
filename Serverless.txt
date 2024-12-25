@@ -85,3 +85,43 @@ Lambda and VPC
             • Lambda is still outside of the VPC by itself, but it now has a "delegate" or "proxy" inside the VPC, a temporary address inside the VPC, so other instances within the same VPC can communicate with it. 
         • Lambda with RDS Proxy: (https://drive.google.com/file/d/1GXxAhYgVDggPABU8EvmlY7C5a5Edy6wc/view?usp=sharing)
         
+
+DynamoDB
+
+    • Fully managed, highly available with replication across multiple AZs.
+    • NoSQL DB
+    • Scales to massive workload, distributed database.
+    • Millions of requests per seconds, trillions of row, 100s of TB of storage.
+    • Fast and consistent in performance
+    • Integrated with IAM
+    • Low cost and auto-scale
+    • No maintenance or patching, always available.
+    • Standard & Infrequence Access(IA) Table Class.
+
+DynamoDB Basic
+
+    • Made of Tables.
+    • Each table has a Primary Key(must be decided at creation time)
+    • Each table can have an infinite number of items(=rows)
+    • Each items has attributes(can be added over time - can be null)
+    • Max size of an item is 400kb
+    • Data types supported are:
+        • Scalar Types - String, Number, Binary, Boolean, Null
+        • DocumentTypes - List, Map
+        • Set Types - String Set, Number Set, Binary Set
+
+    • If the schema needs to be rapidly evolve, then DynamoDB > RDS
+
+    Read/Write Capacity Modes
+        
+        • Control how you manage your table's capacity(read/write throughput)
+        • Provisioned Mode(default)
+            • You specify the number of reads / writes per sec
+            • You need to plan capacity beforehand
+            • Pay for provisioned Read Capacity Units(RCU) & Write Capacity Units(WCU)
+            • Possible to add auto-scaling mode for RCU & WCU
+        • On-Demand Mode
+            • Read/Writes automatically scale up / down with your workloads.
+            • No capacity planning needed.
+            • Pay for what you use, more expensive($$$)
+            • Great for unpredictable workloads, steep sudden spikes.
