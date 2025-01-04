@@ -103,3 +103,39 @@
     
     Note: No, visitors do not need to type :80 after the IP address when you allow inbound HTTP traffic on port 80. Port 80 is the default port for HTTP traffic. When a web browser makes a request to a website without specifying a port, it automatically uses port 80 for HTTP and port 443 for HTTPS. Therefore, if your web server is listening on port 80 and someone types in your website address or IP without a port number, the browser assumes port 80 by default.
 
+
+savings plan:
+
+    Let's clarify how the discount works in the context of an EC2 Instance Savings Plan, specifically using your example of committing $5 per hour on EC2 usage for M5 instances in the North Virginia region.
+
+    ### How the Discount is Applied
+
+    In an EC2 Instance Savings Plan, the discount is applied by reducing the hourly rate you pay for eligible EC2 instances up to the amount of your hourly commitment. The discount rate depends on the specifics of the Savings Plan, such as the instance family, region, term length, and payment option.
+
+    ### Example Calculation with Discount
+
+    Let’s assume:
+    - **On-Demand Rate for `m5.large`**: $0.096 per hour.
+    - **Discount Rate**: 70% off the On-Demand rate.
+
+    1. **Calculate Discounted Rate**:
+    - Discounted rate for `m5.large`: $0.096 per hour × 30% (100% - 70% discount) = $0.0288 per hour.
+
+    2. **Determine How Many Instances the Commitment Covers**:
+    - Number of `m5.large` instances that can be covered under $5/hour commitment:
+    - $5/hour ÷ $0.0288 per hour/instance ≈ 173 instances (This shows how many instances you can run each hour under the commitment without additional cost).
+
+    ### Scenario Analysis
+
+    - **If You Fully Utilize Your Commitment**:
+    - If you run 173 `m5.large` instances for one hour, you would be fully utilizing your hourly commitment of $5. This amount covers the discounted rate for all these instances within that hour.
+
+    - **If You Under-utilize Your Commitment (e.g., no usage)**:
+    - You still pay $5 per hour regardless of usage, which means you are not receiving the direct benefit of the discount because you are not utilizing the instances.
+
+    - **If You Exceed Your Commitment**:
+    - Any additional usage beyond the equivalent of 173 `m5.large` instances per hour would be billed at the standard On-Demand rate.
+
+    ### Conclusion
+
+    The discount in a Savings Plan effectively lowers the cost per instance per hour, allowing you to operate more instances for the same cost, compared to On-Demand rates. However, to benefit from the discount, you must utilize the instances up to the level of your commitment. Any unused capacity still incurs costs, highlighting the importance of aligning your commitment closely with your actual or anticipated usage.
