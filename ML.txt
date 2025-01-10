@@ -1,0 +1,86 @@
+1. Rekognition
+    • Detect objects, people, text, scenes in images and videos using ML.
+    • Facial Analysis and facial search to do user verification, people counting.
+    • Create a db of "familiar faces" or compare against celebrities.
+    
+    Use cases:
+        • Labeling
+        • Content Moderation
+        • Text Detection
+        • Pathing(sports game analysis)
+
+    
+    Content Moderation
+        
+        • Detect content that is inappropriate, unwanted or offensive(images and videos).
+        • Used in social media, broadcast media, advertising, and e-commerce situations to create a safer user exp.
+        
+        • Set a Minimum Confidence Threshold for items that will be flagged. (Only results that meet or exceed the set threshold are considered "positive" detections. If the confidence score is below the threshold, the detection is discarded or flagged as uncertain, which can be crucial for applications where accuracy is more critical than recall.)
+        
+        • Flag sensitive content for manual review in Amazon AUGMENTED AI (A2I).
+        • Help comply with regulations.
+
+    
+2. Transcribe
+    • Automatically convert speech into text.
+    • Uses a deep learning process called automatic speech recognition(ASR) to convert speech to text quickly and accurately.
+    • Automatically remove Personally Identifiable Info(PII) using Redaction.
+    • Supports Automatic Language Identification for multi-lingual audio.
+
+    Use cases:
+        • transcribe customer service calls.
+        • automate closed captionning and subtitling.
+        • generate metadata for media assets to create a fully searchable archive. (example: A media company wants to create a searchable archive of all interviews conducted over the past year to quickly locate specific segments discussing "climate change.")
+
+3. Polly
+    • Turn text into lifelike speech using deep learning.
+    • Allowing you to create applications that talk.
+
+    Lexicon & SSML
+        • Customize the pronunciation of words with Pronounciation lexicons.
+            • Stylized words: St3ph4ne => "Stephane"
+            • Acronyms: AWS => "Amazon Web Services"
+        
+        • Upload the lexicons and use them in the SynthesizeSpeech operation.
+        • Generate speech from plain text or from documents marked up with Speech Synthesis Markup Language(SSML) - enables more customization
+            • emphasizing specific words or phrases.
+            • using phonetic pronunciation.
+            • including breathing sounds, whispering.
+            • using the Newscaster speaking style.
+
+
+4. Translate
+    • Natural and accurate language translation
+    • Amazon Translate allows you to localize content - such as websites and applications - for international users, and to easily translate large columes of text efficiently.
+
+
+5. Lex & Connect
+    
+    • Lex(The technology that powers Alexa)
+        • Automatic Speech Recognition(ASR) to convert speech to text
+        • Natural Language Understanding to recognize the intent of text, callers.
+        • Helps build chatbots, call center bots.
+    
+    • Connect
+        • Receive calls, create contact flows, cloud-based virtual contact center.
+        • Can integrate with other CRM system or AWS
+        • No upfront payments, 80% cheaper than traditional contact center solutions.
+        
+        Use case example:
+            Phone call to schedule an appointment -> Connect to stream it to Lex -> Lex recognize the speech and its intent, then invoke lambda -> lambda schedules it in CRM.
+
+6. Amazon Comprehend
+    • For Natual Language Processing - NLP
+    • Fully managed and serverless service
+    • Uses machine learning to find insights and relationships in text.
+        • Language of the text
+        • Extract key phrases, places, people, brands, or events.
+        • Understands how positive or negative the text is.
+        • Analyzes text using tokenization and parts of speech.
+        • Automatically organizes a collection of text files by topics.
+    
+    Use case:
+        • Analyze customer interactions(email) to find what leads to a positive or negative experience.
+        • Create and groups articles by topics that Comprehend will uncover.
+
+        
