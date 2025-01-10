@@ -69,7 +69,7 @@
         Use case example:
             Phone call to schedule an appointment -> Connect to stream it to Lex -> Lex recognize the speech and its intent, then invoke lambda -> lambda schedules it in CRM.
 
-6. Amazon Comprehend
+6. Comprehend
     • For Natual Language Processing - NLP
     • Fully managed and serverless service
     • Uses machine learning to find insights and relationships in text.
@@ -84,3 +84,87 @@
         • Create and groups articles by topics that Comprehend will uncover.
 
         
+7. Comprehend Medical
+    • detects and returns useful information in unstructured clinical text:
+        • Physician's notes.
+        • Discharge summaries
+        • Test results
+        • Case notes.
+
+    • Uses NLP to detect Protected Health Information(PHI) - DetectPHI API 
+    • Store your documents in S3, analyze real-time data with Kinesis Data Firehose, or use Transcribe to transcribe patient narratives into text that can be analyzed by Amazon Comprehend Medical.
+
+
+8. SageMaker
+    • Fully managed service for developers / data scientists to build ML models.
+    • Typically difficult to do all the processes in one places + provision servers, and this is where SageMaker comes in.
+    • Machine Learning process(simplified): predicting your exam score
+        • years of exp in IT, years of exp in AWS, time spent on courses.
+        • actual score in the exam
+        • build ML model based on above
+        • Train and Tune
+        • When new data comes in(years of exp...), apply the model, and get the prediction.
+
+
+9. Forecast
+    • Fully managed service that uses ML to deliver highly accurate forecasts
+    • Example: predict the future sales of a raincoat.
+    • 50% more accurate than looking at the data itself.
+    • Reduce forecasting time from months to hours.
+
+    Use cases:
+        1. Historical data: product features, prices, discounts, website traffic... all uploaded to S3
+        2. Start a Forecast service on that bucket, and produce a Forecasting model.
+        3. use that model to predict future sales of raincoat.
+
+
+(GPT: The similarity in feeling between SageMaker and Forecast arises from their shared goal of making machine learning accessible and manageable within the AWS ecosystem, leveraging automation and integration. However, the distinction lies in their specialization, with SageMaker offering broad machine learning capabilities and Forecast focusing on time-series forecasting. This specialization allows each service to excel in its respective area, providing tailored tools and processes to best suit the needs of different use cases.)
+
+
+10. Kendra
+    • Fully managed document search service powered by Machine Learning 
+    • Extract answers from within a document(text, pdf, html, Powerpoint...)
+    • Natrual Language search capabilities
+        step 1: DataSources(S3, Google Drive, RDS, SharePoint...) -> Kendra
+        step 2: user: "Where is the IT support desk?" -> Kendra -> "1st floor"
+
+    • Learn from user interactions / feedback to promote preferred results(Incremental Learning)
+    • Ability to manually fine-tune search results(importance of data, freshness, custom...)
+
+
+11. Personalize
+    • Fully managed ML-service to build apps with real-time personalized recommendations.
+        • Personalized product recommendatations/re-ranking, customized direct marketing
+            • User bought gardening tools -> provide recommendations on the next one to buy
+    • Same technology used by Amazon.com
+    • Integrates into existing websites, applications, SMS, email marketing systems...
+    • Implement in days, not months(you don't need to build, train and deploy ML solutions)
+    • Use cases: retail stores, media and entertainment...
+
+    1. Amazon Personalize can read data from two sources: S3 and Amazon Personalized API(real-time data integration)
+    2. Then it generates/exposes a Customized personalized API for websites, mobiles apps, SMS, emails to use.
+
+12. Amazon Textract
+    • Automatically extracts text, handwriting, and data from scanned documents using AI and ML
+        • Example: a picture containning a Driver License of someone -> Analyzed by Textract -> JSON text.
+    • Extract data from forms and tables
+    • Read and process any type of documents(PDFs, images...)
+    • Use cases:
+        • Financial Services(invoices, financial reports...)
+        • Healthcare(medical records, insurance claims...)
+        • Public Sector(tax forms, ID documents, passports...)
+
+
+Summary: https://drive.google.com/file/d/13nH2KC-gZ5-A-bAqmv1PZlHjuSEKWEyB/view?usp=sharing
+
+1. Rekognition: Focuses on visual analysis, such as face detection, labeling objects in images, and recognizing celebrities.
+2. Transcribe: Converts spoken audio into text, useful for generating subtitles and other text-based representations of audio content.
+3. Polly: Turns text into lifelike speech, facilitating applications where spoken output is required, such as virtual assistants.
+4. Translate: Provides language translation services, enabling applications to support multiple languages.
+5. Lex: Powers conversational interfaces, enabling the creation of chatbots that can understand and respond to human language.
+6. Connect: Offers a cloud-based contact center service that can integrate with other AWS services to enhance customer support operations.
+7. Comprehend: Analyzes text to extract meaningful insights such as sentiment, key phrases, and entities, supporting enhanced data processing and decision-making.
+8. SageMaker: A comprehensive platform for building, training, and deploying machine learning models, accessible to developers and data scientists of all skill levels.
+9. Forecast: Provides accurate forecasting tools based on historical data, leveraging machine learning to predict future events or conditions.
+10. Kendra: An intelligent search service that uses machine learning to understand the context of documents and user queries, delivering precise search results.
+11. Personalize: Offers personalized recommendations in real-time, based on individual user behavior and preferences.
