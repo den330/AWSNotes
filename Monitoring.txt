@@ -23,3 +23,58 @@ Amazon CloudWatch
                         3. Amazon OpenSearch
 
         • Option to filter metrics to only stream a subset of them.
+
+    • Logs
+        • Log Groups: arbitary name, usually representing an application.
+        • Log Stream: instances within application / log files / containers.
+        • Can define log exp policies(never expire, 1 day to 10 years...)
+        • can send logs to:
+            • S3(exports)
+            • Kinesis Data Stream
+            • Kinesis Data Firehose
+            • Lambda
+            • OpenSearch
+        • Logs are encrypted by default.
+        • Can setup KMS-based encryption with your own keys.
+
+        Sources
+            • SDK, CloudWatch Logs Agent, CloudWatch Unified Agent.
+            • Elastic Beanstalk: Collection of logs from application.
+            • ECS: collection from containers.
+            • AWS Lambda: collection from function logs.
+            • VPC Flow Logs: VPC specific logs.
+            • API Gateway: logging all the requests sent to it.
+            • CloudTrail based on filter
+            • Route53: Log DNS Queries
+
+        Logs Insight
+            • Search and analyze log data stored in Logs
+                • Example: find a specific IP inside a log, count occurrences of "ERROR" in your logs...
+
+            • Provides a purpose-built query language
+                • Automatically discovers fields from AWS services and JSON log events
+                • Fetch desired event fields, filter based on conditions, calculate aggregate statistics, sort events, limit number of events..
+                • Can save queries and add them to CloudWatch dashboards.
+
+            • Can query multiple Log Groups in different AWS accounts.
+            • It is a query engine, not a real-time engine.
+
+        S3 Export
+            • Log data can take up to 12 hours to become available for export
+            • The API call is CreateExportTask
+            • Not near-real time or real-time... for that, use Logs Subscriptions instead.
+
+        Logs Subscriptions
+            • Get a real-time log events from CloudWatch Logs for processing and analysis.
+            • Send to Kinesis DataStreams, Kinesis Data Firehose, or Lambda.
+            • Subscription Filter - filter which logs are events delivered to your destination.
+            • Logs Aggregation (multi-account and multi-region)
+                • Logs from different accounts / regions can be sent to a common destination. 
+                • example: Logs from different accounts / regions -> Kinesis Data Stream -> Kinesis Data Firehose -> S3
+
+            • Cross-Account Subscription: send log events to resources in a different AWS accounts(KDS,KDF), see picture: https://drive.google.com/file/d/1F4et9lEC7x-VVO4wYCZKasHEKZWg94Us/view?usp=sharing
+
+        
+            
+
+        
