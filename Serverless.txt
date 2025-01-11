@@ -82,7 +82,7 @@ Lambda and VPC
     • Lambda in VPC:
         • You must define the VPC ID, the Subnets and the Security Groups.
         • Lambda will create an ENI(Elastic Network Interface) in your subnets. (https://drive.google.com/file/d/1yslsTWx9v7WNVlt78URh7GpJAaSY9FoZ/view?usp=sharing)
-            • Lambda is still outside of the VPC by itself, but it now has a "delegate" or "proxy" inside the VPC, a temporary address inside the VPC, so other instances within the same VPC can communicate with it. 
+            • Lambda is still outside of the VPC by itself, but it now has a "delegate" or "proxy" inside the VPC, a temporary address inside the VPC, so other instances within the same VPC can communicate with it. (when you have a ENI like that, you are effectively inside the vpc)
         • Lambda with RDS Proxy: (https://drive.google.com/file/d/1GXxAhYgVDggPABU8EvmlY7C5a5Edy6wc/view?usp=sharing)
         
 
