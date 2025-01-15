@@ -13,7 +13,7 @@ Encryption
 
     3. Client-side encryption
         • Data is encrypted by the client and never decrypted by the server.
-        • Data will be decrypted by a reveiving client.
+        • Data will be decrypted by a receiving client.
         • The server should NOT be able to decrypt the data.
         • Cloud leverage Envelop Encryption.
         • https://drive.google.com/file/d/1X3kYADRXea4wH8Y__ArdgfBdjo4yup4N/view?usp=sharing
