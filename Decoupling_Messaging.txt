@@ -220,6 +220,15 @@ Amazon Kinesis is a platform on AWS designed to handle large-scale real-time dat
 
 Amazon Data Firehose
 
+    • https://drive.google.com/file/d/1ZJ1VB02fsd_UzyMrNRcFKUmLs0H1_lEw/view?usp=sharing
+    • Fully managed service.
+    • Auto Scaling, serverless, pay for what you use.
+    • Near Real-Time with buffering capability based on size / time.
+    • Supports incoming data format: CSV, JSON, Parquet, Avro, Raw Text, Binary data,
+    • can do converstions to Parquet / ORC, compressions with gzip / snappy.
+    • Custom data transformation using AWS lambda(ex: CSV to JSON).
+    • Firehose vs kinesis Data Stream: https://drive.google.com/file/d/1f0rSv1o3_le8Eriyqota-8M4Q1I-3Mgz/view?usp=sharing
+
     GPT  ###############################################
 
         Amazon Kinesis Data Firehose is a fully managed service that automatically scales to match the throughput of your data and requires no ongoing administration. It can capture, transform, and load streaming data into Amazon S3, Amazon Redshift, Amazon Elasticsearch Service, and Splunk, enabling near real-time analytics with existing business intelligence tools and dashboards.
@@ -238,9 +247,8 @@ Amazon Data Firehose
 
     GPT End ##############################################
 
-
-
-
+    
+Amazon MQ: https://drive.google.com/file/d/16P-818zaRICDg2gU94R4y8_dMIJnw-uQ/view?usp=sharing
                 
 
 
